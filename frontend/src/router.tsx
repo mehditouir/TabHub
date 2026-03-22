@@ -1,0 +1,88 @@
+// All routes in one place — easy to see the whole navigation structure at a glance.
+// Route groups mirror the three surfaces: public (customer), staff, manager.
+
+import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { ManagerLayout } from '@/components/layout/ManagerLayout'
+import { StaffLayout }   from '@/components/layout/StaffLayout'
+import { Login }         from '@/pages/Login'
+import { CustomerMenu }      from '@/pages/CustomerMenu'
+import { TakeawayDisplay }   from '@/pages/TakeawayDisplay'
+import { StaffOrders }   from '@/pages/staff/Orders'
+import { Dashboard }     from '@/pages/manager/Dashboard'
+import { Menu }          from '@/pages/manager/Menu'
+import { Spaces }        from '@/pages/manager/Spaces'
+import { Staff }         from '@/pages/manager/Staff'
+import { Config }        from '@/pages/manager/Config'
+
+// ── Auth guard ──────────────────────────────────────────────────────────────
+// Simple wrapper: if no token in localStorage, redirect to /login.
+// Proper server-side protection is handled by the backend JWT + tenant checks.
+
+function RequireAuth({ children }: { children: React.ReactNode }) {
+  const token = localStorage.getItem('tabhub_token')
+  return token ? <>{children}</> : <Navigate to="/login" replace />
+}
+
+// ── Router ──────────────────────────────────────────────────────────────────
+
+export const router = createBrowserRouter([
+  // Public: customer scans QR → /menu/:tenant?table=<qrToken>
+  {
+    path: '/menu/:tenant',
+    element: <CustomerMenu />,
+  },
+
+  // Public: takeaway display screen → /takeaway/:tenant
+  {
+    path: '/takeaway/:tenant',
+    element: <TakeawayDisplay />,
+  },
+
+  // Auth
+  {
+    path: '/login',
+    element: <Login />,
+  },
+
+  // Staff — full-screen kiosk layout
+  {
+    path: '/staff',
+    element: <RequireAuth><StaffLayout /></RequireAuth>,
+    children: [
+      { index: true,      element: <Navigate to="orders" replace /> },
+      { path: 'orders',   element: <StaffOrders /> },
+    ],
+  },
+
+  // Manager — sidebar layout
+  {
+    path: '/manager',
+    element: <RequireAuth><ManagerLayout /></RequireAuth>,
+    children: [
+      { index: true,      element: <Navigate to="dashboard" replace /> },
+      { path: 'dashboard', element: <Dashboard /> },
+      // Placeholder routes — pages to be built next
+      { path: 'menu',      element: <Menu /> },
+      { path: 'spaces',    element: <Spaces /> },
+      { path: 'staff',     element: <Staff /> },
+      { path: 'config',    element: <Config /> },
+    ],
+  },
+
+  // Catch-all → login
+  {
+    path: '*',
+    element: <Navigate to="/login" replace />,
+  },
+])
+
+function ComingSoon({ title }: { title: string }) {
+  return (
+    <div className="flex h-full items-center justify-center text-zinc-400">
+      <div className="text-center">
+        <p className="text-4xl">🚧</p>
+        <p className="mt-2 font-medium">{title} — coming next sprint</p>
+      </div>
+    </div>
+  )
+}

@@ -1,0 +1,62 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "backend: build",
+      "command": "dotnet",
+      "type": "process",
+      "args": ["build", "${workspaceFolder}/backend/TabHub.API/TabHub.API.csproj", "/property:GenerateFullPaths=true", "/consoleloggerparameters:NoSummary"],
+      "problemMatcher": "$msCompile",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": { "reveal": "silent" }
+    },
+    {
+      "label": "backend: watch",
+      "command": "dotnet",
+      "type": "process",
+      "args": ["watch", "--project", "${workspaceFolder}/backend/TabHub.API/TabHub.API.csproj"],
+      "problemMatcher": "$msCompile",
+      "isBackground": true,
+      "presentation": { "reveal": "always", "panel": "dedicated", "group": "fullstack" }
+    },
+    {
+      "label": "frontend: dev",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": {
+        "cwd": "${workspaceFolder}/frontend"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "VITE",
+          "endsPattern": "Local:\\s+http"
+        }
+      },
+      "presentation": { "reveal": "always", "panel": "dedicated", "group": "fullstack" }
+    },
+    {
+      "label": "restore",
+      "command": "dotnet",
+      "type": "process",
+      "args": ["restore", "${workspaceFolder}/backend/TabHub.API/TabHub.API.csproj"],
+      "problemMatcher": "$msCompile",
+      "presentation": { "reveal": "always" }
+    },
+    {
+      "label": "publish",
+      "command": "dotnet",
+      "type": "process",
+      "args": ["publish", "${workspaceFolder}/backend/TabHub.API/TabHub.API.csproj", "-c", "Release", "-o", "${workspaceFolder}/publish/api"],
+      "problemMatcher": "$msCompile",
+      "presentation": { "reveal": "always" }
+    }
+  ]
+}

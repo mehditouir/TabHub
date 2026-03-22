@@ -1,0 +1,22 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.env
+
+# Node
+node_modules/
+dist/
+.env
+.env.local
+
+# Ionic / Capacitor
+android/
+ios/
+www/
+
+# OS
+.DS_Store
+Thumbs.db

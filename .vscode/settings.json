@@ -1,0 +1,50 @@
+{
+  // C# Dev Kit — point to the solution file
+  "dotnet.defaultSolution": "TabHub.sln",
+
+  // Use Roslyn LSP (C# Dev Kit) instead of legacy OmniSharp
+  "csharp.experimental.useProjectSystemWatcher": true,
+
+  // Quick fix on save (equivalent to Alt+Enter auto-fix)
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit"
+  },
+
+  // Show IntelliSense parameter hints inline
+  "editor.inlayHints.enabled": "on",
+  "editor.parameterHints.enabled": true,
+
+  // Format on save
+  "editor.formatOnSave": true,
+  "[csharp]": {
+    "editor.defaultFormatter": "ms-dotnettools.csharp",
+    "editor.formatOnSave": true
+  },
+
+  // NuGet Package Manager GUI — use project-level nuget.config
+  "nugetpackagemanager.sourceRepositories": [
+    {
+      "name": "nuget.org",
+      "url": "https://api.nuget.org/v3/index.json"
+    }
+  ],
+
+  // File nesting in Explorer (keeps .csproj children tidy)
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "*.csproj": "*.user, *.csproj.user",
+    "appsettings.json": "appsettings.*.json"
+  },
+
+  // Exclude build artifacts from Explorer
+  "files.exclude": {
+    "**/bin": true,
+    "**/obj": true,
+    "**/.vs": true
+  },
+  "search.exclude": {
+    "**/bin": true,
+    "**/obj": true
+  }
+}
