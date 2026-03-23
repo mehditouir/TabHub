@@ -499,7 +499,8 @@ src/test/mocks/server.ts      — Creates msw setupServer with all handlers
 
 ```
 documentation/sprint-plan.md          — 10-sprint project timeline (2 weeks each, W1–W22, internship graduation project)
-documentation/graduation-report.md   — NEW: Full graduation report (problem, architecture, sprints, decisions, results, roadmap)
+documentation/graduation-report.md    — Full graduation report in French (problem, architecture, sprints, decisions, results, roadmap)
+documentation/graduation-report-en.md — Full graduation report in English (direct translation of the French report)
 documentation/diagrams/README.md — Index of all Mermaid diagrams organized by sprint
 ```
 
