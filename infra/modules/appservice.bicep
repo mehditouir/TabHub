@@ -31,7 +31,6 @@ resource webApp 'Microsoft.Web/sites@2023-01-01' = {
       linuxFxVersion: 'DOTNETCORE|8.0'
       alwaysOn: true           // prevents cold starts
       webSocketsEnabled: true  // required for SignalR
-      appCommandLine: 'apt-get install -y libfontconfig1 fonts-liberation 2>/dev/null || true; dotnet /home/site/wwwroot/TabHub.API.dll'
       ftpsState: 'Disabled'
       minTlsVersion: '1.2'
       // Non-secret app settings only — secrets are added in appsettings.bicep
