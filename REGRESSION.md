@@ -937,6 +937,27 @@ Navigate to each of the following and verify the correct screen loads (no 404, n
 
 ---
 
+### T-84 — PDF renders correctly on production (Linux font smoke test)
+> **Why this test exists:** QuestPDF on Linux *can* fail if system fonts are missing. This test confirms it works on the live Azure App Service (Linux) — not just locally.
+
+**Preconditions:** At least one completed order exists (run T-33 or T-42 first)
+
+**Steps:**
+1. From the cashier app (`/cashier/cafetunisia`), log in with PIN `3333`
+2. Go to the **Sessions** tab → find an open session → click **Close**
+3. The PDF bill modal opens — observe the result
+
+**Expected:**
+- PDF renders with visible text (not blank, not garbled boxes)
+- No error toast or console error mentioning "font", "Skia", or "render"
+- Text is readable: item names, prices, totals are legible
+
+**If it fails:**
+- PDF is blank or shows empty boxes → font issue confirmed, needs fix
+- 500 error from `GET /orders/{id}/bill.pdf` → server crash, check App Service logs
+
+---
+
 ## Module 17 — Image Upload
 
 ### T-66 — Menu item photo upload and display
@@ -1244,6 +1265,7 @@ Use this as a quick reference to track what you've verified:
 | T-63 | Navigation | Direct URL navigation works | |
 | T-64 | Navigation | All app URLs load correctly | |
 | T-65 | PDF | Bill content is correct | |
+| T-84 | PDF | Renders correctly on Linux production (font smoke test) | |
 | T-66 | Images | Photo upload and display | |
 | T-67 | Images | Large image handling | |
 | T-68 | Scheduling | Active time-range menu on customer menu | |
