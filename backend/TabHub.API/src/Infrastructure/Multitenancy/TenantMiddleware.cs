@@ -7,6 +7,13 @@ public class TenantMiddleware(RequestDelegate next)
 {
     public async Task InvokeAsync(HttpContext context, AppDbContext db, TenantCache cache)
     {
+        // Health endpoint must be reachable without a tenant (used by deployment verification)
+        if (context.Request.Path.StartsWithSegments("/health"))
+        {
+            await next(context);
+            return;
+        }
+
         // X-Tenant header takes priority (for Swagger UI / local dev)
         // Falls back to X-Tenant query param (SignalR WebSocket — browsers can't set custom headers)
         // Falls back to subdomain extraction from Host header in production
