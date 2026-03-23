@@ -5,7 +5,7 @@ import { Dashboard } from './Dashboard'
 describe('Dashboard', () => {
   it('shows loading state initially', () => {
     render(<Dashboard />)
-    expect(screen.getByText('Loading dashboard…')).toBeInTheDocument()
+    expect(screen.getByText('Loading…')).toBeInTheDocument()
   })
 
   it('renders KPI cards after load', async () => {

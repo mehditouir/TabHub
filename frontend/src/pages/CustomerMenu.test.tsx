@@ -93,7 +93,7 @@ describe('CustomerMenu', () => {
     await userEvent.click(addButtons[0])
     await userEvent.click(screen.getByRole('button', { name: 'Place order' }))
 
-    await waitFor(() => expect(screen.getByText('Order placed!')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('Your order has been received')).toBeInTheDocument())
   })
 
   it('shows "Order more" button after order success', async () => {
@@ -104,7 +104,7 @@ describe('CustomerMenu', () => {
     await userEvent.click(addButtons[0])
     await userEvent.click(screen.getByRole('button', { name: 'Place order' }))
 
-    await waitFor(() => screen.getByRole('button', { name: 'Order more' }))
+    await waitFor(() => screen.getByRole('button', { name: 'Order more items' }))
   })
 
   it('returns to menu when "Order more" is clicked', async () => {
@@ -115,8 +115,8 @@ describe('CustomerMenu', () => {
     await userEvent.click(addButtons[0])
     await userEvent.click(screen.getByRole('button', { name: 'Place order' }))
 
-    await waitFor(() => screen.getByRole('button', { name: 'Order more' }))
-    await userEvent.click(screen.getByRole('button', { name: 'Order more' }))
+    await waitFor(() => screen.getByRole('button', { name: 'Order more items' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Order more items' }))
 
     expect(screen.getByText('Hot Drinks')).toBeInTheDocument()
   })

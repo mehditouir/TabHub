@@ -42,6 +42,11 @@ export const handlers = [
 
   http.delete(`${BASE}/orders/:id`, () => new HttpResponse(null, { status: 204 })),
 
+  // ── Tables ────────────────────────────────────────────────────────────────
+  http.get(`${BASE}/tables/resolve`, () =>
+    HttpResponse.json({ tableId: 'table-1', tableNumber: '5' }),
+  ),
+
   // ── Reports ───────────────────────────────────────────────────────────────
   http.get(`${BASE}/reports/orders/summary`, () => HttpResponse.json(FIXTURES.orderSummary)),
   http.get(`${BASE}/reports/top-items`,      () => HttpResponse.json(FIXTURES.topItems)),
