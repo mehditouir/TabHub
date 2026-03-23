@@ -171,6 +171,17 @@ lifetime.ApplicationStarted.Register(() =>
 
             await using var conn = new NpgsqlConnection(connStr);
             await conn.OpenAsync();
+
+            // Skip if already seeded (idempotency guard — avoids pg_type conflicts on restart)
+            await using var checkCmd = new NpgsqlCommand(
+                "SELECT COUNT(*) FROM information_schema.schemata WHERE schema_name = 'cafetunisia'", conn);
+            var exists = (long)(await checkCmd.ExecuteScalarAsync())! > 0;
+            if (exists)
+            {
+                startupLogger.LogInformation("Database already seeded — skipping");
+                return;
+            }
+
             foreach (var stmt in statements)
             {
                 await using var cmd = new NpgsqlCommand(stmt, conn);
