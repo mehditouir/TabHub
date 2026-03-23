@@ -345,6 +345,12 @@ src/i18n/locales/fr.json       — French translations (same sections)
 src/i18n/locales/ar.json       — Arabic translations (same sections)
 ```
 
+### frontend/src/components/
+
+```
+src/components/StaffPinLogin.tsx  — Reusable PIN keypad login panel for kitchen/cashier; validates role after login; stores token in localStorage
+```
+
 ### frontend/src/components/layout/
 
 ```
@@ -375,13 +381,15 @@ src/components/ui/Input.test.tsx  — Tests: label renders, error styling, attri
 ### frontend/src/lib/api/
 
 ```
-src/lib/api/auth.ts        — login(tenant, email, password), logout(tenant) — passes explicitTenant to apiFetch
+src/lib/api/auth.ts        — login(manager), logout, staffPinLogin(tenant, pin) — manager + staff PIN auth
 src/lib/api/client.ts      — apiFetch<T>(): attaches JWT + X-Tenant headers; throws ApiError on non-2xx; hubUrl(); customerHubUrl(tenant, tableId?)
 src/lib/api/client.test.ts — Tests: correct headers sent, ApiError thrown on 4xx/5xx, 204 returns undefined
 src/lib/api/config.ts      — getConfig() → Record<string,string>; setConfig(key, value) → upserts via PUT /config/{key}
 src/lib/api/menu.ts        — getPublicMenu(); getCategories/create/update/delete; getMenuItems/create/update/delete; uploadMenuItemImage()
-src/lib/api/orders.ts      — placeOrder(), callWaiter(), requestBill() (anon); getOrders/getOrder/updateOrderStatus/cancelOrder (auth)
+src/lib/api/orders.ts      — placeOrder(), callWaiter(), requestBill() (anon); getOrders/getOrder/updateOrderStatus/cancelOrder/placeStaffOrder/placeTakeawayOrder/fetchBillBlobUrl (auth)
 src/lib/api/reports.ts     — getRevenue(), getTopItems(), getOrderSummary(), getBusiestHours()
+src/lib/api/notifications.ts — ackNotification(id) — competing-consumer ACK, 409 = already taken
+src/lib/api/sessions.ts    — getSessions(isOpen?), closeSession, moveSession, mergeSession
 src/lib/api/spaces.ts      — getSpaces/create/update/delete; getTables/create/update/delete (with spaceId filter); resolveTable(tenant, qrToken) public
 src/lib/api/staff.ts       — getStaff/create/update/setPin/delete; getWaiterZones/createWaiterZone/deleteWaiterZone
 ```
@@ -393,6 +401,7 @@ src/lib/hooks/useAuth.ts       — login/logout; decodes JWT; persists token + t
 src/lib/hooks/useAuth.test.ts  — Tests: login sets localStorage keys, logout clears, JWT payload decoded correctly
 src/lib/hooks/useKiosk.ts      — Requests fullscreen on mount; re-requests on fullscreenchange exit
 src/lib/hooks/useOrderHub.ts   — SignalR connection; handles OrderPlaced/StatusChanged/Cancelled + NewOrderNotification; auto-rejoin on reconnect
+src/lib/hooks/useWaiterHub.ts  — SignalR hub for waiter app; handles all 6 event types (OrderPlaced/StatusChanged/Cancelled/NewOrderNotification/WaiterCalled/BillRequested); returns orders + alerts
 ```
 
 ### frontend/src/lib/
@@ -409,6 +418,9 @@ src/lib/utils.test.ts  — Tests: cn class merging, formatPrice output, formatTi
 src/pages/CustomerMenu.tsx       — Public QR menu: browse categories/items, modifier selection modal, floating cart, place order, live order tracking (SignalR), call waiter/request bill
 src/pages/CustomerMenu.test.tsx  — Tests: renders menu items, add to cart, submit order flow
 src/pages/TakeawayDisplay.tsx    — Public takeaway board (/takeaway/:tenant): live order queue grouped by status (Pending/Preparing/Ready), SignalR-driven, no auth required
+src/pages/KitchenApp.tsx         — Kitchen display (/kitchen/:tenant): PIN login (kitchen role), two-column kanban (Pending/InProgress), advance + reject, SignalR-driven, elapsed time indicator
+src/pages/CashierApp.tsx         — Cashier kiosk (/cashier/:tenant): PIN login (cashier role), New Order tab (takeaway/table + item picker + cart), Sessions tab (close session + PDF bill)
+src/pages/WaiterApp.tsx          — Waiter tablet app (/waiter/:tenant): PIN login (waiter role), floor plan grid with zone highlighting, orders tab with advance/cancel, sessions tab (move/merge/close+bill), place order modal, notification banner with ACK
 src/pages/Login.tsx              — Login form: tenant slug + email + password; redirects by role after JWT decode
 src/pages/Login.test.tsx         — Tests: form submission, error display, role-based redirect
 ```
@@ -438,82 +450,6 @@ src/test/setup.ts             — MSW server lifecycle: beforeAll listen, afterE
 src/test/mocks/fixtures.ts    — Typed test data: Pending/InProgress/Completed orders, menu, summary, revenue
 src/test/mocks/handlers.ts    — MSW request handlers for auth, menu, orders, reports endpoints
 src/test/mocks/server.ts      — Creates msw setupServer with all handlers
-```
-
----
-
-## mobile/ (Ionic/Capacitor — Sprint 7: Waiter App)
-
-```
-mobile/.browserslistrc               — Browser targets for Capacitor native builds
-mobile/.env                          — Local dev env: VITE_API_URL=http://localhost:5195
-mobile/capacitor.config.ts           — Capacitor config: appId, appName, webDir
-mobile/cypress.config.ts             — Cypress e2e test config
-mobile/eslint.config.js              — ESLint config for mobile app
-mobile/index.html                    — Mobile HTML shell
-mobile/ionic.config.json             — Ionic project config: type react
-mobile/package.json                  — Mobile deps: Ionic React 8, Capacitor 8, React 19, @microsoft/signalr; Cypress, Vitest
-mobile/tsconfig.json                 — Mobile TypeScript config
-mobile/tsconfig.node.json            — Mobile Node TS config (for vite.config)
-mobile/vite.config.ts                — Vite config: legacy plugin, dev server port 5174
-mobile/cypress/e2e/test.cy.ts        — Cypress e2e test
-mobile/cypress/fixtures/example.json — Cypress fixture placeholder
-mobile/cypress/support/commands.ts   — Cypress custom commands setup
-mobile/cypress/support/e2e.ts        — Cypress e2e support import file
-mobile/public/manifest.json          — Mobile PWA manifest
-mobile/src/App.tsx                   — Ionic root: /login + /app tabs (Floor/Orders/Sessions) with WaiterProvider + NotificationBanner
-mobile/src/main.tsx                  — Mobile app entry point
-mobile/src/setupTests.ts             — Test setup: jest-dom imports
-mobile/src/vite-env.d.ts             — Vite environment type declarations
-mobile/src/theme/variables.css       — Ionic CSS custom properties for theming
-```
-
-### mobile/src/contexts/
-
-```
-mobile/src/contexts/WaiterContext.tsx — Global context: auth (user/login/logout) + hub (orders/alerts/connected); wraps useAuth + useWaiterHub
-```
-
-### mobile/src/lib/
-
-```
-mobile/src/lib/types.ts              — TypeScript interfaces: StaffUser, Order, Session, Space, Table, WaiterZone, PendingAlert, PublicMenu*, CartItem
-```
-
-### mobile/src/lib/api/
-
-```
-mobile/src/lib/api/client.ts         — apiFetch<T> with JWT + X-Tenant from localStorage; hubUrl(); fetchBillBlobUrl() for PDF download
-mobile/src/lib/api/auth.ts           — staffPinLogin(tenant, pin) → StaffLoginResponse
-mobile/src/lib/api/orders.ts         — getOrders, placeStaffOrder (POST /orders/staff), updateOrderStatus, cancelOrder
-mobile/src/lib/api/notifications.ts  — getNotifications, ackNotification (competing consumer PUT /notifications/{id}/ack)
-mobile/src/lib/api/spaces.ts         — getSpaces, getTables (with optional spaceId filter)
-mobile/src/lib/api/sessions.ts       — getSessions, openSession, closeSession, moveSession, mergeSession
-mobile/src/lib/api/staff.ts          — getMyZones(staffId) → WaiterZone[]
-mobile/src/lib/api/menu.ts           — getPublicMenu() for item selection when placing orders
-```
-
-### mobile/src/lib/hooks/
-
-```
-mobile/src/lib/hooks/useAuth.ts      — Staff JWT login/logout; decodes JWT claims; persists token + tenant slug in localStorage
-mobile/src/lib/hooks/useWaiterHub.ts — SignalR hub: connects as staff JWT; handles OrderPlaced/StatusChanged/Cancelled/NewOrderNotification/WaiterCalled/BillRequested; returns orders + alerts
-```
-
-### mobile/src/components/
-
-```
-mobile/src/components/NotificationBanner.tsx — Fixed overlay showing PendingAlerts; NewOrder alerts call ackNotification (competing consumer, 409 = taken); WaiterCalled/BillRequested dismiss locally
-```
-
-### mobile/src/pages/
-
-```
-mobile/src/pages/Login.tsx           — Tenant slug + PIN keypad (6-digit max); calls staffPinLogin; redirects to /app/floor on success
-mobile/src/pages/FloorPlan.tsx       — Space selector + grid; tables coloured by session/order status; only shows clickable for waiter's zones; tap → table detail modal with "Place Order" action
-mobile/src/pages/Orders.tsx          — Live order queue from SignalR; status filter tabs; advance → NEXT_STATUS; cancel with confirm alert; pull-to-refresh
-mobile/src/pages/Sessions.tsx        — Open sessions list; Move (pick free table), Merge (pick other session), Close + Bill (closes session → fetches PDF → shows in iframe modal)
-mobile/src/pages/PlaceOrder.tsx      — Menu browser with add/remove per item; floating cart bar; IonModal cart review; submits via placeStaffOrder()
 ```
 
 ---

@@ -44,7 +44,9 @@
       "Bash(git config:*)",
       "Bash(gh auth:*)",
       "Bash(git --version)",
-      "Bash(ssh -T git@github.com)"
+      "Bash(ssh -T git@github.com)",
+      "Bash(powershell -Command \"Remove-Item -Recurse -Force ''D:\\\\Projects\\\\TabHub\\\\mobile\\\\.git''\")",
+      "Bash(powershell -Command \"Remove-Item -Recurse -Force ''D:\\\\Projects\\\\TabHub\\\\mobile''\")"
     ]
   }
 }

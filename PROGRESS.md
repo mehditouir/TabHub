@@ -16,7 +16,7 @@
 | 5 | Manager Dashboard (Web) | ✅ Complete |
 | 6 | Customer Ordering Interface | ✅ Complete |
 | 7 | Waiter Application | ✅ Complete |
-| 8 | Kitchen, Cashier & Takeaway | ❌ Not started |
+| 8 | Kitchen, Cashier & Takeaway | ✅ Complete |
 | 9 | Cloud Deployment & CI/CD | ❌ Not started |
 | 10 | Hardening & Demo Preparation | ❌ Not started |
 
@@ -161,7 +161,7 @@
 
 ## Sprint 7 — Waiter Application ✅ COMPLETE
 
-Ionic React tablet app in `mobile/`. All planned features shipped.
+~~Ionic React tablet app in `mobile/`.~~ **Rewritten as a responsive web page** at `/waiter/:tenant` in `frontend/` — same features, same stack as kitchen/cashier, no Ionic dependency.
 
 - ✅ Staff PIN login — tenant slug + PIN keypad; JWT stored in localStorage; role-based (`waiter`)
 - ✅ Floor plan (assigned zones only) — space selector with IonSegment; grid highlights tables in waiter's zones; colour-coded by status: free (green) / occupied (orange) / attention (red = pending/inProgress orders)
@@ -173,18 +173,24 @@ Ionic React tablet app in `mobile/`. All planned features shipped.
 - ✅ Close session + PDF bill — close button triggers `PUT /sessions/{id}/close`; fetches latest order; renders PDF in iframe via blob URL
 - ✅ SignalR hub (`useWaiterHub`) — connects as staff JWT; joins `staff_{staffId}` group server-side; handles all 6 event types; auto-reconnect
 - ✅ `WaiterContext` — global context with auth + hub state shared across all tabs and the notification overlay
-- ✅ Dev server on port 5174 (separate from frontend on 5173)
+- ✅ **Rewritten as a web page** (`/waiter/:tenant` in `frontend/`) — Ionic/Capacitor removed, `mobile/` directory deleted
 
 ---
 
-## Sprint 8 — Kitchen, Cashier & Takeaway ❌ NOT STARTED
+## Sprint 8 — Kitchen, Cashier & Takeaway ✅ COMPLETE
 
 Depends on Sprint 7 completion.
 
-Planned:
-- **Kitchen app:** always-on display, item tick (pending → preparing → ready), item rejection
-- **Cashier app:** PIN login, walk-in + takeaway orders, print bill
+- ✅ **Kitchen app:** `/kitchen/:tenant`; PIN login (kitchen role); two-column kanban Pending/InProgress; advance (Pending→InProgress→Ready) + reject; elapsed time badge; SignalR live; dark always-on UI
+- ✅ **Cashier app:** `/cashier/:tenant`; PIN login (cashier role); New Order tab (Takeaway/Table toggle, menu item picker, cart, submit); Sessions tab (list open sessions, close + PDF bill modal)
 - ✅ **Takeaway display:** public screen `/takeaway/:tenant`, live order queue grouped by status (Pending/Preparing/Ready), SignalR-driven; backend `GET /orders/takeaway-board` (AllowAnonymous)
+
+**Also done:**
+- ✅ `staffPinLogin` added to frontend auth API
+- ✅ `StaffLoginResponse`, `StaffUser`, `Session` types added to frontend types
+- ✅ `placeStaffOrder`, `placeTakeawayOrder`, `fetchBillBlobUrl` added to frontend orders API
+- ✅ `frontend/src/lib/api/sessions.ts` — getSessions, closeSession
+- ✅ `StaffPinLogin` shared component (role-validated PIN keypad)
 
 ---
 

@@ -7,6 +7,21 @@ export interface LoginResponse {
   manager: { id: string; email: string; displayName: string }
 }
 
+export interface StaffLoginResponse {
+  accessToken: string
+  expiresAt:   string
+  staffId:     string
+  displayName: string
+  role:        string
+}
+
+export interface StaffUser {
+  staffId:     string
+  displayName: string
+  role:        string
+  tenant:      string
+}
+
 export interface AuthUser {
   email: string
   displayName: string
@@ -134,6 +149,39 @@ export interface MenuItem    { id: string; categoryId: string; name: string; pri
 export interface Space       { id: string; name: string; cols: number; rows: number; sortOrder: number; isActive: boolean }
 export interface Table       { id: string; spaceId: string; number: string; col: number; row: number; qrToken: string; isActive: boolean }
 export interface TableResolveResponse { tableId: string; tableNumber: string }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Customer shared cart sync (SignalR)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sessions
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface Session {
+  id:          string
+  tableId:     string
+  tableNumber: string | null
+  staffId:     string | null
+  staffName:   string | null
+  isOpen:      boolean
+  openedAt:    string
+  closedAt:    string | null
+  notes:       string | null
+  orderCount:  number
+}
+
+export type AlertType = 'NewOrder' | 'WaiterCalled' | 'BillRequested'
+
+export interface PendingAlert {
+  id:          string
+  type:        AlertType
+  tableId:     string | null
+  tableNumber: string | null
+  orderId:     string | null
+  order:       Order | null
+  createdAt:   string
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Customer shared cart sync (SignalR)

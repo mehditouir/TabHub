@@ -1,16 +1,9 @@
 import { apiFetch } from './client'
-import type { Session } from '../types'
+import type { Session } from '@/lib/types'
 
 export function getSessions(params?: { isOpen?: boolean }) {
   const qs = params?.isOpen !== undefined ? `?isOpen=${params.isOpen}` : ''
   return apiFetch<Session[]>(`/sessions${qs}`)
-}
-
-export function openSession(tableId: string, notes?: string) {
-  return apiFetch<Session>('/sessions', {
-    method: 'POST',
-    body: JSON.stringify({ tableId, ...(notes ? { notes } : {}) }),
-  })
 }
 
 export function closeSession(id: string) {

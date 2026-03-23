@@ -2,7 +2,7 @@
 
 **Stack:** ASP.NET Core 8 Web API (C#) + React 19/Vite/TypeScript SPA + PostgreSQL (schema-per-tenant) + Docker
 **Runtime:** Backend on `http://localhost:5195` | Frontend on `http://localhost:5173` | Postgres in Docker (`tabhub_postgres`, port 5432)
-**Mobile:** Ionic/Capacitor scaffold in `mobile/` — not yet developed
+**Waiter app:** Responsive web page at `/waiter/:tenant` — lives in `frontend/` alongside kitchen, cashier, and takeaway apps
 
 ## Entry points
 - Backend: `backend/TabHub.API/Program.cs`
@@ -12,6 +12,7 @@
 - Tests (frontend): `frontend/src/**/*.test.{ts,tsx}` — Vitest + MSW
 
 For detailed file index: read FILEMAP.md
+For local testing instructions (all surfaces + SignalR): read TESTING.md
 
 ## Backend patterns (read before touching any backend file)
 

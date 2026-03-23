@@ -7,6 +7,9 @@ import { StaffLayout }   from '@/components/layout/StaffLayout'
 import { Login }         from '@/pages/Login'
 import { CustomerMenu }      from '@/pages/CustomerMenu'
 import { TakeawayDisplay }   from '@/pages/TakeawayDisplay'
+import { KitchenApp }        from '@/pages/KitchenApp'
+import { CashierApp }        from '@/pages/CashierApp'
+import { WaiterApp }         from '@/pages/WaiterApp'
 import { StaffOrders }   from '@/pages/staff/Orders'
 import { Dashboard }     from '@/pages/manager/Dashboard'
 import { Menu }          from '@/pages/manager/Menu'
@@ -36,6 +39,24 @@ export const router = createBrowserRouter([
   {
     path: '/takeaway/:tenant',
     element: <TakeawayDisplay />,
+  },
+
+  // Staff: kitchen display → /kitchen/:tenant
+  {
+    path: '/kitchen/:tenant',
+    element: <KitchenApp />,
+  },
+
+  // Staff: cashier kiosk → /cashier/:tenant
+  {
+    path: '/cashier/:tenant',
+    element: <CashierApp />,
+  },
+
+  // Staff: waiter tablet app → /waiter/:tenant
+  {
+    path: '/waiter/:tenant',
+    element: <WaiterApp />,
   },
 
   // Auth

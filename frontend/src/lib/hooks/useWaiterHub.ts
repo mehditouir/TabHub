@@ -1,27 +1,26 @@
-// SignalR hub for the waiter tablet app.
-// Maintains the live order list and surfaced alerts (new orders, waiter-called, bill-requested).
+// SignalR hub hook for the waiter web app.
+// Mirrors the mobile useWaiterHub but uses tabhub_token/tabhub_tenant from localStorage.
 // Groups are assigned server-side on connect based on the staff JWT:
-//   - tenant_{schema} (all events)
-//   - staff_{staffId} (zone-targeted notifications)
+//   - tenant_{schema}       (all tenant events)
+//   - staff_{staffId}       (zone-targeted notifications)
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import * as signalR from '@microsoft/signalr'
-import { hubUrl } from '../api/client'
-import { getOrders } from '../api/orders'
-import type { Order, PendingAlert } from '../types'
+import { hubUrl } from '@/lib/api/client'
+import { getOrders } from '@/lib/api/orders'
+import type { Order, PendingAlert } from '@/lib/types'
 
 export function useWaiterHub(enabled: boolean) {
-  const [orders, setOrders]   = useState<Order[]>([])
-  const [alerts, setAlerts]   = useState<PendingAlert[]>([])
+  const [orders,    setOrders]    = useState<Order[]>([])
+  const [alerts,    setAlerts]    = useState<PendingAlert[]>([])
   const [connected, setConnected] = useState(false)
   const connRef = useRef<signalR.HubConnection | null>(null)
 
   const refresh = useCallback(async () => {
-    if (!localStorage.getItem('waiter_token')) return
+    if (!localStorage.getItem('tabhub_token')) return
     try {
-      const fresh = await getOrders()
-      setOrders(fresh)
-    } catch { /* ignore network errors */ }
+      setOrders(await getOrders())
+    } catch { /* ignore */ }
   }, [])
 
   const dismissAlert = useCallback((id: string) => {
@@ -50,7 +49,6 @@ export function useWaiterHub(enabled: boolean) {
       setOrders(prev => prev.map(o => o.id === cancelled.id ? cancelled : o))
     })
 
-    // Zone-targeted: new order placed at a table in this waiter's zone
     connection.on('NewOrderNotification', (payload: { notificationId: string; order: Order }) => {
       setAlerts(prev => [{
         id:          payload.notificationId,
@@ -61,50 +59,30 @@ export function useWaiterHub(enabled: boolean) {
         order:       payload.order,
         createdAt:   new Date().toISOString(),
       }, ...prev])
-      setOrders(prev => {
-        const exists = prev.find(o => o.id === payload.order.id)
-        return exists ? prev : [payload.order, ...prev]
-      })
+      setOrders(prev => prev.find(o => o.id === payload.order.id) ? prev : [payload.order, ...prev])
     })
 
-    // Customer pressed "Call Waiter"
     connection.on('WaiterCalled', (payload: { tableId: string; tableNumber: string }) => {
       setAlerts(prev => [{
-        id:          crypto.randomUUID(),
-        type:        'WaiterCalled',
-        tableId:     payload.tableId,
-        tableNumber: payload.tableNumber,
-        orderId:     null,
-        order:       null,
-        createdAt:   new Date().toISOString(),
+        id: crypto.randomUUID(), type: 'WaiterCalled',
+        tableId: payload.tableId, tableNumber: payload.tableNumber,
+        orderId: null, order: null, createdAt: new Date().toISOString(),
       }, ...prev])
     })
 
-    // Customer pressed "Request Bill"
     connection.on('BillRequested', (payload: { tableId: string; tableNumber: string }) => {
       setAlerts(prev => [{
-        id:          crypto.randomUUID(),
-        type:        'BillRequested',
-        tableId:     payload.tableId,
-        tableNumber: payload.tableNumber,
-        orderId:     null,
-        order:       null,
-        createdAt:   new Date().toISOString(),
+        id: crypto.randomUUID(), type: 'BillRequested',
+        tableId: payload.tableId, tableNumber: payload.tableNumber,
+        orderId: null, order: null, createdAt: new Date().toISOString(),
       }, ...prev])
     })
 
-    connection.onreconnected(() => {
-      setConnected(true)
-      refresh()
-    })
+    connection.onreconnected(() => { setConnected(true); refresh() })
     connection.onclose(() => setConnected(false))
-
-    connection.start()
-      .then(() => setConnected(true))
-      .catch(console.error)
+    connection.start().then(() => setConnected(true)).catch(console.error)
 
     connRef.current = connection
-
     return () => { connection.stop() }
   }, [enabled, refresh])
 
