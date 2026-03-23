@@ -221,8 +221,8 @@ Depends on Sprint 7 completion.
 
 **Production fixes applied:**
 - ✅ Fix 1 (image upload): `BlobImageStorageService` already implemented; resolves when Key Vault secret is set
-- ✅ Fix 2 (PDF fonts): `appservice.bicep` startup command installs `fonts-liberation libfontconfig1` before starting the app
-- ✅ Fix 3 (Super admin): `POST /admin/auth/login` (no tenant), `GET/POST /admin/tenants`, `GET/POST /admin/managers`, `POST /admin/tenants/{id}/managers`; `/admin` frontend with login + dashboard; mehdi@cafetunisia.com is super admin in seed
+- ✅ Fix 2 (PDF fonts): QuestPDF bundles Lato font — no system fonts needed on Linux; no code change required; confirmed non-issue
+- ✅ Fix 3 (Super admin): `POST /admin/auth/login` (no tenant), `GET/POST /admin/tenants`, `GET/POST /admin/managers`, `POST /admin/tenants/{id}/managers`; `/admin` frontend with login + dashboard; `mehdi@mehdi.com` is super admin (upserted on every startup)
 - ✅ Fix 4 (WebSockets / SignalR): `webSocketsEnabled: true` already in Bicep from Sprint 9
 
 ---
