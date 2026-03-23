@@ -26,13 +26,34 @@ public class TestWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
     public async Task InitializeAsync()
     {
         await _postgres.StartAsync();
-        // Seed platform data first — creates public.tenants, which the migration FK depends on
+
+        // Step 1: create public.tenants before the migration runs.
+        // The migration adds a FK from manager_tenants → public.tenants, so the table
+        // must exist first. managers/manager_tenants themselves are created by the migration.
+        await using (var setupConn = new NpgsqlConnection(_postgres.GetConnectionString()))
+        {
+            await setupConn.OpenAsync();
+            await using var cmd = new NpgsqlCommand("""
+                CREATE TABLE IF NOT EXISTS public.tenants (
+                    id          UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+                    slug        VARCHAR(63)  NOT NULL UNIQUE,
+                    schema_name VARCHAR(63)  NOT NULL UNIQUE,
+                    name        VARCHAR(255) NOT NULL,
+                    status      VARCHAR(20)  NOT NULL DEFAULT 'Active',
+                    created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+                    updated_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+                )
+                """, setupConn);
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        // Step 2: accessing Services triggers EnsureServer → Program.cs startup →
+        // db.Database.MigrateAsync() which creates managers, refresh_tokens, manager_tenants.
+        _ = Services;
+
+        // Step 3: seed the rest — tenant rows, manager account, tenant schemas.
+        // db-init.sql uses CREATE IF NOT EXISTS + ON CONFLICT DO NOTHING throughout.
         await SeedDatabaseAsync();
-        // Apply EF migrations (manager_tenants FK to tenants now resolves; Program.cs
-        // also calls MigrateAsync on startup, so this is a no-op but kept for clarity)
-        using var scope = Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        await db.Database.MigrateAsync();
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
