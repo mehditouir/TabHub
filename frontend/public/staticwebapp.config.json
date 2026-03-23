@@ -9,6 +9,9 @@
     "Referrer-Policy": "strict-origin-when-cross-origin"
   },
   "mimeTypes": {
+    ".js": "text/javascript",
+    ".mjs": "text/javascript",
+    ".css": "text/css",
     ".json": "application/json",
     ".webp": "image/webp"
   }
