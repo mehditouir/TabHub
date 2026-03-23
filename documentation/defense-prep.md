@@ -95,9 +95,9 @@
 
 ### Produit & marché
 
-**Q : Quel est le modèle économique ?**
+**Q : Quel est le modèle économique ? Et pourquoi ces prix ?**
 
-> Trois plans SaaS : Starter (49 TND/mois, 1 espace, 20 tables, 3 employés), Pro (99 TND/mois, illimité), Enterprise (sur devis, multi-site). C'est 5 à 10 fois moins cher que les solutions occidentales (Lightspeed, Zelty). Avantages compétitifs : prix, arabe natif RTL, onboarding en 5 minutes, support local, TVA tunisienne intégrée.
+> La cible n'est pas le petit restaurant avec un seul serveur polyvalent — c'est le grand salon de thé établi ou le restaurant avec 20+ tables, 3+ employés, et un vrai problème de coordination. Ces établissements génèrent 20 000 à 80 000 TND/mois. Une amélioration de 15–20 % de la rotation des tables — mesurée en pratique quand le client commande directement sans attendre — représente 3 000 à 16 000 TND/mois supplémentaires. Dans ce contexte, 199 TND/mois (plan Essentiel) se récupère en moins d'une journée de chiffre d'affaires. Le plan Pro est à 399 TND, Multi-site à 699 TND pour jusqu'à 3 établissements. C'est 3 à 5 fois moins cher que Lightspeed (≈ 1 500–3 000 TND/mois).
 
 **Q : Que ferais-tu différemment si tu recommençais ?**
 

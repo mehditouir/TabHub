@@ -207,6 +207,224 @@ Une seule application React sert 7 surfaces différentes :
 
 ---
 
+### Sprint 0 — Architecture & Fondations
+
+**Objectif :** Mettre en place le socle technique complet avant d'écrire la première ligne de code métier.
+
+**Livrables :**
+- API ASP.NET Core 8 opérationnelle avec Swagger UI (`GET /health` prouve la connexion DB par tenant)
+- PostgreSQL 15 dans Docker (port 5432), initialisé via `db-init.sql`
+- Entity Framework Core + Npgsql, convention snake_case appliquée globalement
+- `SchemaProvisioner` : création automatique d'un schéma PostgreSQL isolé par nouveau tenant
+- `TenantMiddleware` : résout l'en-tête `X-Tenant` → `SET search_path TO {schema}` sur chaque requête
+- `nuget.config`, `global.json`, `docker-compose.yml` versionnés
+
+**Diagrammes de référence :**
+- `diagrams/sprints/sprint0/01-tech-stack.md` — choix technologiques justifiés
+- `diagrams/sprints/sprint0/02-monorepo-structure.md` — organisation du monorepo
+- `diagrams/sprints/sprint0/03-tenant-middleware-sequence.md` — séquence de résolution tenant
+
+---
+
+### Sprint 1 — Identité & Configuration
+
+**Objectif :** Authentification complète deux niveaux + configuration du restaurant.
+
+**Livrables :**
+- Auth manager : Argon2id, JWT 15 min, cookie httpOnly refresh 30 jours, logout, rotation des tokens
+- Auth staff : PIN BCrypt, JWT 12 h (tablette partagée, pas de refresh)
+- Autorisation par rôle sur tous les endpoints protégés
+- CRUD Espaces (grille cols × rows) + CRUD Tables (QR token UUID par table)
+- CRUD Staff + gestion PIN + zones serveur (plage col/row par espace)
+- CRUD Config (TVA, langue, horaires d'ouverture par jour)
+- Journal d'audit sur toutes les opérations d'écriture
+- Tests : Auth, AuthAdvanced, Spaces, Tables, Staff, Config, TenantIsolation, WaiterZones
+
+**Diagrammes de référence :**
+- `diagrams/sprints/sprint1/01-erd-sprint1.md` — ERD identité + configuration
+- `diagrams/sprints/sprint1/02-auth-sequence.md` — séquence de connexion manager et staff
+- `diagrams/sprints/sprint1/03-restaurant-setup-sequence.md` — séquence de configuration restaurant
+
+---
+
+### Sprint 2 — Système de Menu
+
+**Objectif :** Menu complet avec planification temporelle, modificateurs et upload d'images.
+
+**Livrables :**
+- CRUD Catégories (name, sortOrder, isActive, soft delete)
+- CRUD Items de menu (name, description, price, imageUrl, isAvailable, sortOrder)
+- `GET /public-menu` — retourne catégories + items actifs pour le QR client
+- CRUD Ingrédients + désactivation en cascade (désactiver un ingrédient désactive les items liés)
+- Liens ingrédient ↔ item (`POST/DELETE /ingredients/{id}/menu-items/{itemId}`)
+- CRUD Menus nommés + règles de planification : `TIME_RANGE` (HH:mm), `DAY_OF_WEEK` (bitmask Lun=1…Dim=64), `DATE_RANGE` (yyyy-MM-dd)
+- `GET /menus/active` — moteur de planification AND-logic, public/anonyme
+- Groupes de modificateurs + options avec delta de prix
+- Upload image (`POST /menu-items/{id}/image`) : resize WebP 400×400, Azure Blob si configuré, `wwwroot/uploads/` sinon
+
+**Diagrammes de référence :**
+- `diagrams/sprints/sprint2/01-erd-sprint2.md` — ERD complet du système de menu
+- `diagrams/sprints/sprint2/02-menu-schedule-flowchart.md` — logique de sélection du menu actif
+- `diagrams/sprints/sprint2/03-image-pipeline.md` — pipeline upload → resize → stockage
+
+---
+
+### Sprint 3 — Moteur de Commandes & Facturation
+
+**Objectif :** Cycle de vie complet d'une commande, des sessions de table à la facture PDF.
+
+**Livrables :**
+- CRUD Commandes avec machine à états : `Pending → Preparing → Ready → Delivered / Cancelled`
+- `OrderItems` : snapshots nom + prix unitaire (immuables même si le menu change)
+- `PUT /orders/{id}/status` — avancement ou annulation
+- Sessions de table (open/close/move/merge) — `TableSession` entité, `SessionsController`
+- Bypass waiter/cashier : `POST /orders/staff` crée directement en `InProgress`
+- Commandes à emporter : `POST /orders/takeaway` (numéro séquentiel journalier AAAAMMDDNNNNN)
+- Facture PDF : `GET /orders/{id}/bill.pdf` — QuestPDF, ventilation TVA, TND, format A5
+- Tests : Orders, OrderIntegrity, OrderTenantIsolation
+
+**Diagrammes de référence :**
+- `diagrams/sprints/sprint3/01-erd-sprint3.md` — ERD commandes + sessions
+- `diagrams/sprints/sprint3/02-order-status-machine.md` — machine à états des commandes et items
+- `diagrams/sprints/sprint3/03-session-lifecycle.md` — cycle de vie d'une session de table
+
+---
+
+### Sprint 4 — Couche Temps Réel (SignalR)
+
+**Objectif :** Propagation instantanée de tous les événements entre les 7 surfaces.
+
+**Livrables :**
+- `OrderHub` sur `/hubs/orders` — groupes par tenant (`tenant_{schema}`)
+- Événements broadcast : `OrderPlaced`, `OrderStatusChanged`, `OrderCancelled`, `WaiterCalled`, `BillRequested`
+- Persistance des notifications en base + ACK concurrent (`SELECT … FOR UPDATE`, premier appelant gagne, 409 pour les autres)
+- Routage zone-serveur : `OrderPlaced` envoie `NewOrderNotification` aux seuls serveurs dont la zone couvre la table
+- Fallback manager : si aucune zone ne couvre la table, notification vers le groupe manager
+- Groupes SignalR par table (`table_{tableId}`) et par staff (`staff_{staffId}`)
+- Reconnexion automatique (`withAutomaticReconnect`) + re-join des groupes côté serveur au `OnConnectedAsync`
+- Hook `useOrderHub.ts` côté frontend
+
+**Diagrammes de référence :**
+- `diagrams/sprints/sprint4/01-signalr-group-topology.md` — topologie des groupes SignalR
+- `diagrams/sprints/sprint4/02-ack-competing-consumer.md` — pattern competing consumer avec row lock
+
+---
+
+### Sprint 5 — Dashboard Manager (Web)
+
+**Objectif :** Interface de gestion complète pour le propriétaire, trilingue avec RTL arabe.
+
+**Livrables :**
+- Page de connexion manager (redirect par rôle après décodage JWT)
+- Layout manager : sidebar (Dashboard / Menu / Espaces / Staff / Paramètres) + sélecteur de langue
+- Dashboard : KPI cards (total, en attente, en cours, prêt, complété, annulé), temps moyen, graphique revenus 30 jours, top 5 items
+- Page Menu : accordéon catégories + modales CRUD items + upload photo
+- Page Espaces : 3 onglets — Éditeur (grille + QR), Live (statuts temps réel), Zones (drag-assign serveurs)
+- Page Staff : liste avec badges rôles + modale create/edit/delete + gestion PIN
+- Page Config : nom restaurant, TVA, langue, horaires par jour
+- i18n : `i18next` + `react-i18next`, fichiers locale FR/AR/EN, `dir="rtl"` dynamique, persisté en localStorage
+
+**Diagrammes de référence :**
+- `diagrams/sprints/sprint5/01-dashboard-component-tree.md` — arbre de composants React du dashboard
+- `diagrams/sprints/sprint5/02-floor-plan-grid-logic.md` — logique de la grille plan de salle
+
+---
+
+### Sprint 6 — Interface Client QR
+
+**Objectif :** Surface client accessible via QR code, sans compte, sans installation.
+
+**Livrables :**
+- `CustomerMenu.tsx` : scan QR → menu actif → navigation catégories → sélection items + modificateurs → panier flottant → commande
+- Résolution de session automatique : `POST /orders` lie la commande à la session active de la table
+- Suivi temps réel post-commande : indicateur d'étapes (Pending→InProgress→Ready→Served) via SignalR
+- Boutons « Appeler le serveur » et « Demander l'addition » (`POST /orders/call-waiter`, `POST /orders/request-bill`)
+- Panier partagé multi-appareils : `BroadcastCart` hub method, `GET /tables/resolve` (qrToken → tableId)
+- Badge « Indisponible » sur les items désactivés (carte grisée, bouton Ajouter masqué)
+- UX mobile-first : images items, panier flottant avec safe-area, modale modificateurs slide-up
+
+**Diagrammes de référence :**
+- `diagrams/sprints/sprint6/01-customer-journey.md` — parcours client complet de QR à commande
+- `diagrams/sprints/sprint6/02-session-state-machine.md` — états d'une session de table côté client
+
+---
+
+### Sprint 7 — Application Serveur (Waiter App)
+
+**Objectif :** Tablette partagée pour les serveurs — plan de salle, notifications, gestion des commandes.
+
+**Livrables :**
+- Connexion staff par PIN (rôle `Waiter`) en 2 secondes
+- Plan de salle interactif : sélecteur d'espace, grille avec mise en couleur par statut (libre / occupé / attention)
+- Overlay de notification fixe : gère `NewOrderNotification`, `WaiterCalled`, `BillRequested` en temps réel
+- ACK concurrent : `PUT /notifications/{id}/ack` avec row lock, 409 si déjà pris
+- Onglet commandes : liste live via SignalR, filtres par statut, avancement/annulation
+- Passer commande depuis la tablette : `POST /orders/staff` (InProgress direct), menu public, panier flottant
+- Move/merge sessions via modales dédiées
+- Fermeture session + PDF facture (rendu dans un iframe via blob URL)
+- `WaiterContext` : state global auth + hub partagé entre tous les onglets
+
+**Diagrammes de référence :**
+- `diagrams/sprints/sprint7/01-waiter-notification-routing.md` — routage zone-based des notifications
+- `diagrams/sprints/sprint7/02-waiter-app-flow.md` — flux de navigation de l'application serveur
+
+---
+
+### Sprint 8 — Cuisine, Caisse & Emporter
+
+**Objectif :** Trois surfaces opérationnelles complémentaires pour compléter le cycle de service.
+
+**Livrables :**
+- **Cuisine** (`/kitchen/:tenant`) : PIN login rôle Kitchen, kanban deux colonnes Pending/InProgress, avancement + rejet, badge temps écoulé, indicateur connexion SignalR, interface sombre always-on
+- **Caisse** (`/cashier/:tenant`) : PIN login rôle Cashier, onglet Nouvelle Commande (toggle Emporter/Table + picker items + panier), onglet Sessions (liste ouverte, fermeture + modal PDF)
+- **Affichage Emporter** (`/takeaway/:tenant`) : écran public sans auth, file de commandes groupées par statut (Pending/Preparing/Ready), temps réel SignalR, `GET /orders/takeaway-board` (AllowAnonymous)
+
+**Diagrammes de référence :**
+- `diagrams/sprints/sprint8/01-kitchen-state-machine.md` — machine à états du kanban cuisine
+- `diagrams/sprints/sprint8/02-full-system-simulation.md` — simulation multi-surfaces simultanées
+
+---
+
+### Sprint 9 — Déploiement Cloud & CI/CD
+
+**Objectif :** Infrastructure Azure as-code, pipeline CI/CD complet, mise en production HTTPS.
+
+**Livrables :**
+- **IaC Bicep** (`infra/`) : App Service B1 + Static Web App (free) + PostgreSQL Flexible Server B1ms + Key Vault (3 secrets) + Application Insights + Azure Blob Storage
+- **GitHub Actions** : `infra.yml` (déploiement Bicep), `backend.yml` (build → test → zip deploy → smoke test), `frontend.yml` (build → deploy SWA)
+- `staticwebapp.config.json` : fallback SPA routing + security headers (CSP, X-Frame-Options…)
+- **Super Admin** : `POST /admin/auth/login`, CRUD tenants, CRUD managers, assignation manager ↔ tenant ; frontend `/admin` ; super admin upserted au démarrage
+- Résolution signalR WebSocket activée dans Bicep (`webSocketsEnabled: true`)
+
+**URLs de production :**
+- Frontend : `https://ashy-grass-0c75bb903.6.azurestaticapps.net`
+- API : `https://tabhub-api-caguf5bkb7b9bzca.francecentral-01.azurewebsites.net`
+
+**Diagrammes de référence :**
+- `diagrams/sprints/sprint9/01-azure-infrastructure.md` — architecture Azure complète
+- `diagrams/sprints/sprint9/02-cicd-pipeline.md` — pipeline CI/CD en 3 workflows
+
+---
+
+### Sprint 10 — Durcissement & Préparation Démo
+
+**Objectif :** Sécuriser, tester exhaustivement et préparer la présentation finale.
+
+**Livrables :**
+- **ExceptionMiddleware** : capture toutes les exceptions non gérées, retourne `{ "error": "…" }` JSON avec 500, log via `ILogger`
+- **Rate limiting** : fenêtre fixe .NET 8, 10 req/min par IP sur les 3 endpoints d'auth, retourne JSON 429
+- **FluentValidation** : validators pour `LoginRequest`, `StaffPinLoginRequest`, `RegisterManagerRequest`, `CreateTenantRequest`, `AdminCreateManagerRequest` — retourne 400 sur input invalide
+- **RTL arabe** : audit complet `text-left → text-start`, `ml-auto → ms-auto` dans CustomerMenu, Menu, Spaces, WaiterApp, TakeawayDisplay
+- **Suite E2E Playwright** : 83 tests (T-01–T-83), 21 modules, workers séquentiels, multi-contextes SignalR, find-or-create idempotent, teardown automatique
+- **Données démo** : `db-init.sql` entièrement seeded — cafetunisia (8 items, 2 espaces, 3 staff, 13 sessions historiques) + restauranttunisia (23 items, 5 catégories, 3 espaces, 4 staff, 15 sessions historiques)
+- **Assistant d'onboarding** : `/manager/:tenant/setup` — 4 étapes guidées avec argument de vente sur chaque étape
+
+**Diagrammes de référence :**
+- `diagrams/sprints/sprint10/01-security-layers.md` — couches de sécurité empilées
+- `diagrams/sprints/sprint10/02-test-strategy.md` — pyramide de tests (backend xUnit + frontend Vitest + E2E Playwright)
+
+---
+
 ## 6. Surfaces applicatives
 
 ### 6.1 Interface client (QR menu)
@@ -411,19 +629,23 @@ push master → npm install → npm run build → deploy Static Web App
 
 ### Modèle commercial
 
-**Cible initiale :** Cafés et restaurants tunisiens urbains (Tunis, Sousse, Sfax)
+**Cible initiale :** Grands salons de thé et restaurants établis en Tunisie urbaine (Tunis, Sousse, Sfax) — établissements avec 20+ tables, 3+ membres du personnel, et un flux de commandes suffisant pour justifier une digitalisation (les petites structures avec un seul serveur polyvalent ne sont pas la cible principale).
 
-| Plan | Prix/mois | Inclus |
-|------|-----------|--------|
-| Starter | 49 TND | 1 espace, 20 tables, 3 staff |
-| Pro | 99 TND | 5 espaces, illimité tables/staff, analytics |
-| Entreprise | Sur devis | Multi-établissements, support dédié |
+**Justification du prix :** Un grand salon de thé à Tunis génère typiquement 20 000–80 000 TND/mois de chiffre d'affaires. Une amélioration de 15–20 % du rotation des tables (mesurée en pratique grâce à la commande QR sans attente) représente 3 000–16 000 TND/mois de revenus supplémentaires. TabHub se positionne donc comme un investissement à ROI immédiat et non comme un coût.
+
+| Plan | Prix/mois | Inclus | ROI typique |
+|------|-----------|--------|-------------|
+| **Essentiel** | **199 TND** | 1 espace, 40 tables, 5 staff, toutes les surfaces | < 1 jour de CA |
+| **Pro** | **399 TND** | Espaces/tables/staff illimités, analytics avancés, export PDF | < 2 jours de CA |
+| **Multi-site** | **699 TND** | Jusqu'à 3 établissements, tableau de bord centralisé | Idéal pour chaînes |
+| **Entreprise** | Sur devis | 3+ établissements, SLA, intégration caisse, support dédié | — |
 
 **Avantage concurrentiel :**
-1. **Prix** — 5–10× moins cher que les solutions occidentales
-2. **Langue** — arabe natif (RTL), français, anglais
-3. **Simplicité** — onboarding en 5 minutes, pas de formation requise
-4. **Local** — support client tunisien, conformité fiscale tunisienne (TVA 7 %/19 %)
+1. **Prix** — 3–5× moins cher que les solutions occidentales (Lightspeed ≈ 1 500–3 000 TND/mois)
+2. **Langue** — arabe natif (RTL), français, anglais — conçu pour le marché tunisien
+3. **Simplicité** — onboarding en 5 minutes, pas de formation requise, assistant guidé intégré
+4. **ROI mesurable** — +15–20 % de rotation des tables dès la première semaine d'usage
+5. **Local** — support client tunisien, TVA 7 %/19 % intégrée, conformité fiscale tunisienne
 
 ### Stratégie de lancement
 
