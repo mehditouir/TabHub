@@ -1,4 +1,5 @@
 using System.Text;
+using Npgsql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -132,7 +133,8 @@ else
 // ─────────────────────────────────────────────────────────────────────────────
 var app = builder.Build();
 
-// ── Auto-migrate on startup ───────────────────────────────────────────────────
+// ── Auto-migrate + seed on startup ────────────────────────────────────────────
+var startupLogger = app.Services.GetRequiredService<ILogger<Program>>();
 try
 {
     using var scope = app.Services.CreateScope();
@@ -141,8 +143,32 @@ try
 }
 catch (Exception ex)
 {
-    var logger = app.Services.GetRequiredService<ILogger<Program>>();
-    logger.LogError(ex, "Database migration failed on startup — app will continue without migrating");
+    startupLogger.LogError(ex, "Database migration failed on startup");
+}
+
+try
+{
+    var connStr = builder.Configuration.GetConnectionString("Default")!;
+    var sqlPath = Path.Combine(AppContext.BaseDirectory, "scripts", "db-init.sql");
+    var sql = await File.ReadAllTextAsync(sqlPath);
+    var statements = sql
+        .Split(';')
+        .Select(s => string.Join('\n', s.Split('\n').Where(l => !l.TrimStart().StartsWith("--"))))
+        .Select(s => s.Trim())
+        .Where(s => !string.IsNullOrWhiteSpace(s));
+
+    await using var conn = new NpgsqlConnection(connStr);
+    await conn.OpenAsync();
+    foreach (var stmt in statements)
+    {
+        await using var cmd = new NpgsqlCommand(stmt, conn);
+        await cmd.ExecuteNonQueryAsync();
+    }
+    startupLogger.LogInformation("Database seeded successfully");
+}
+catch (Exception ex)
+{
+    startupLogger.LogError(ex, "Database seeding failed on startup");
 }
 
 if (app.Environment.IsDevelopment())

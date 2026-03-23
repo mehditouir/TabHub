@@ -7,6 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Include db-init.sql in publish output so Program.cs can seed on startup -->
+    <Content Include="..\..\scripts\db-init.sql" CopyToOutputDirectory="PreserveNewest" Link="scripts\db-init.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AspNetCore.HealthChecks.NpgSql" Version="8.0.2" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.22.2" />
