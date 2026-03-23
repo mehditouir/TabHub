@@ -156,7 +156,11 @@ app.UseAuthorization();               // 3rd — enforces policies
 
 app.MapControllers();
 app.MapHub<OrderHub>("/hubs/orders");
-app.MapGet("/health", () => Results.Ok(new { status = "healthy" })).AllowAnonymous();
+app.MapGet("/health", (HttpContext ctx) =>
+{
+    var tenant = ctx.Items[nameof(TenantContext)] as TenantContext;
+    return Results.Ok(new { status = "healthy", tenant = tenant!.Slug, schema = tenant.SchemaName });
+}).AllowAnonymous();
 
 app.Run();
 
