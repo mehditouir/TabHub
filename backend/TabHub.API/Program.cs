@@ -153,48 +153,52 @@ catch (Exception ex)
 }
 
 // ── Seed in the background so startup completes quickly ───────────────────────
-var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
-lifetime.ApplicationStarted.Register(() =>
+// Skip in Testing — TestWebAppFactory handles seeding itself to avoid concurrent DDL conflicts
+if (!app.Environment.IsEnvironment("Testing"))
 {
-    _ = Task.Run(async () =>
+    var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
+    lifetime.ApplicationStarted.Register(() =>
     {
-        try
+        _ = Task.Run(async () =>
         {
-            var connStr = builder.Configuration.GetConnectionString("Default")!;
-            var sqlPath = Path.Combine(AppContext.BaseDirectory, "scripts", "db-init.sql");
-            var sql = await File.ReadAllTextAsync(sqlPath);
-            var statements = sql
-                .Split(';')
-                .Select(s => string.Join('\n', s.Split('\n').Where(l => !l.TrimStart().StartsWith("--"))))
-                .Select(s => s.Trim())
-                .Where(s => !string.IsNullOrWhiteSpace(s));
-
-            await using var conn = new NpgsqlConnection(connStr);
-            await conn.OpenAsync();
-
-            // Skip if already seeded (idempotency guard — avoids pg_type conflicts on restart)
-            await using var checkCmd = new NpgsqlCommand(
-                "SELECT COUNT(*) FROM information_schema.schemata WHERE schema_name = 'cafetunisia'", conn);
-            var exists = (long)(await checkCmd.ExecuteScalarAsync())! > 0;
-            if (exists)
+            try
             {
-                startupLogger.LogInformation("Database already seeded — skipping");
-                return;
-            }
+                var connStr = builder.Configuration.GetConnectionString("Default")!;
+                var sqlPath = Path.Combine(AppContext.BaseDirectory, "scripts", "db-init.sql");
+                var sql = await File.ReadAllTextAsync(sqlPath);
+                var statements = sql
+                    .Split(';')
+                    .Select(s => string.Join('\n', s.Split('\n').Where(l => !l.TrimStart().StartsWith("--"))))
+                    .Select(s => s.Trim())
+                    .Where(s => !string.IsNullOrWhiteSpace(s));
 
-            foreach (var stmt in statements)
-            {
-                await using var cmd = new NpgsqlCommand(stmt, conn);
-                await cmd.ExecuteNonQueryAsync();
+                await using var conn = new NpgsqlConnection(connStr);
+                await conn.OpenAsync();
+
+                // Skip if already seeded (idempotency guard — avoids pg_type conflicts on restart)
+                await using var checkCmd = new NpgsqlCommand(
+                    "SELECT COUNT(*) FROM information_schema.schemata WHERE schema_name = 'cafetunisia'", conn);
+                var exists = (long)(await checkCmd.ExecuteScalarAsync())! > 0;
+                if (exists)
+                {
+                    startupLogger.LogInformation("Database already seeded — skipping");
+                    return;
+                }
+
+                foreach (var stmt in statements)
+                {
+                    await using var cmd = new NpgsqlCommand(stmt, conn);
+                    await cmd.ExecuteNonQueryAsync();
+                }
+                startupLogger.LogInformation("Database seeded successfully");
             }
-            startupLogger.LogInformation("Database seeded successfully");
-        }
-        catch (Exception ex)
-        {
-            startupLogger.LogError(ex, "Database seeding failed");
-        }
+            catch (Exception ex)
+            {
+                startupLogger.LogError(ex, "Database seeding failed");
+            }
+        });
     });
-});
+}
 
 if (app.Environment.IsDevelopment())
 {
