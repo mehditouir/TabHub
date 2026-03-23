@@ -27,7 +27,9 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore packages
-        run: dotnet restore ${{ env.PROJECT_PATH }}
+        run: |
+          dotnet restore ${{ env.PROJECT_PATH }}
+          dotnet restore backend/TabHub.Tests/TabHub.Tests.csproj
 
       - name: Build
         run: |
