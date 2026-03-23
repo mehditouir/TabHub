@@ -27,9 +27,7 @@ resource postgresServer 'Microsoft.DBforPostgreSQL/flexibleServers@2022-12-01' =
       mode: 'Disabled'
     }
     // Public access with firewall rules — acceptable for demo (no VNet on free tier)
-    network: {
-      publicNetworkAccess: 'Enabled'
-    }
+    network: {}
   }
 }
 

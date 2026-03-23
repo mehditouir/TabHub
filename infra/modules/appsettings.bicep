@@ -10,7 +10,7 @@ param storageContainerName string
 param storageCdnBaseUrl string
 
 // Key Vault reference helper — App Service resolves these at runtime
-func kvRef(secretName string) string => '@Microsoft.KeyVault(VaultName=${kvName};SecretName=${secretName})'
+func kvRef(vaultName string, secretName string) string => '@Microsoft.KeyVault(VaultName=${vaultName};SecretName=${secretName})'
 
 resource appSettingsConfig 'Microsoft.Web/sites/config@2023-01-01' = {
   name: '${apiName}/appsettings'
@@ -20,9 +20,9 @@ resource appSettingsConfig 'Microsoft.Web/sites/config@2023-01-01' = {
     ApplicationInsightsAgent_EXTENSION_VERSION: '~3'
 
     // Secrets — resolved from Key Vault at runtime via managed identity
-    'ConnectionStrings__Default':               kvRef('db-connection-string')
-    Jwt__Key:                                   kvRef('jwt-key')
-    'AzureStorage__ConnectionString':           kvRef('storage-connection-string')
+    'ConnectionStrings__Default':               kvRef(kvName, 'db-connection-string')
+    Jwt__Key:                                   kvRef(kvName, 'jwt-key')
+    'AzureStorage__ConnectionString':           kvRef(kvName, 'storage-connection-string')
 
     // Non-secret config
     Jwt__Issuer:                                'tabhub-api'

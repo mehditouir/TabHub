@@ -13,4 +13,5 @@ resource staticWebApp 'Microsoft.Web/staticSites@2023-01-01' = {
 
 output defaultHostname string = staticWebApp.properties.defaultHostname
 // Deployment token is used by the GitHub Actions frontend workflow
+@secure()
 output deploymentToken string = staticWebApp.listSecrets().properties.apiKey
