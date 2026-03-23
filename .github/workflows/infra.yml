@@ -37,26 +37,30 @@ jobs:
 
       # Deploy Bicep — passes secrets as parameters inline (never written to disk)
       - name: Deploy Bicep
-        id: bicep
         run: |
-          output=$(az deployment group create \
+          az deployment group create \
             --resource-group "$RESOURCE_GROUP" \
             --template-file infra/main.bicep \
             --parameters infra/main.parameters.json \
             --parameters \
               dbAdminPassword="${{ secrets.DB_ADMIN_PASSWORD }}" \
               jwtKey="${{ secrets.JWT_PROD_KEY }}" \
-            --query properties.outputs \
-            --output json)
-          echo "outputs=$output" >> $GITHUB_OUTPUT
+            --output none
+          echo "✅ Bicep deployment complete"
 
-      # Print deployment outputs for first-time setup
+      # Print non-secret outputs for first-time setup guidance
       - name: Show outputs
         run: |
           echo "=== Deployment Outputs ==="
-          echo '${{ steps.bicep.outputs.outputs }}' | jq .
+          az deployment group show \
+            --resource-group "$RESOURCE_GROUP" \
+            --name main \
+            --query "{apiUrl:properties.outputs.apiUrl.value, swaUrl:properties.outputs.swaUrl.value, keyVaultName:properties.outputs.keyVaultName.value}" \
+            --output json
           echo ""
           echo "ACTION REQUIRED after first deploy:"
-          echo "1. Copy swaDeploymentToken.value → add to GitHub secret SWA_DEPLOYMENT_TOKEN"
-          echo "2. Copy apiUrl.value → add to GitHub secret VITE_API_URL"
+          echo "1. Get SWA deployment token from Azure Portal:"
+          echo "   Portal → Static Web Apps → web-tabhub → Manage deployment token"
+          echo "   Add as GitHub secret: SWA_DEPLOYMENT_TOKEN"
+          echo "2. Confirm VITE_API_URL secret = https://api-tabhub.azurewebsites.net"
           echo "3. Run backend and frontend workflows to deploy the apps"
