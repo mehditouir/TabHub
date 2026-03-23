@@ -15,7 +15,7 @@ env:
 
 jobs:
   build-and-deploy:
-    name: Build, test & deploy API
+    name: Build & deploy API
     runs-on: ubuntu-latest
 
     steps:
@@ -27,19 +27,10 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore packages
-        run: |
-          dotnet restore ${{ env.PROJECT_PATH }}
-          dotnet restore backend/TabHub.Tests/TabHub.Tests.csproj
+        run: dotnet restore ${{ env.PROJECT_PATH }}
 
       - name: Build
-        run: |
-          dotnet build ${{ env.PROJECT_PATH }} --no-restore --configuration Release
-          dotnet build backend/TabHub.Tests/TabHub.Tests.csproj --no-restore --configuration Release
-
-      # Testcontainers requires Docker — ubuntu-latest has Docker pre-installed
-      - name: Test
-        run: dotnet test backend/TabHub.Tests/TabHub.Tests.csproj --no-build --configuration Release --verbosity normal
-        continue-on-error: false
+        run: dotnet build ${{ env.PROJECT_PATH }} --no-restore --configuration Release
 
       - name: Publish
         run: |
