@@ -380,7 +380,7 @@ export function Menu() {
                 <div className="flex items-center gap-3 px-4 py-3">
                   <button
                     onClick={() => toggleCollapse(cat.id)}
-                    className="flex flex-1 items-center gap-2 text-left"
+                    className="flex flex-1 items-center gap-2 text-start"
                   >
                     <span className={`text-zinc-400 transition-transform ${isOpen ? 'rotate-90' : ''}`}>▶</span>
                     <span className="font-semibold text-zinc-900">{cat.name}</span>

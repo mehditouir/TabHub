@@ -18,7 +18,7 @@
 | 7 | Waiter Application | ✅ Complete |
 | 8 | Kitchen, Cashier & Takeaway | ✅ Complete |
 | 9 | Cloud Deployment & CI/CD | ✅ Complete |
-| 10 | Hardening & Demo Preparation | ❌ Not started |
+| 10 | Hardening & Demo Preparation | 🚧 In Progress |
 
 ---
 
@@ -225,9 +225,19 @@ Depends on Sprint 7 completion.
 
 ---
 
-## Sprint 10 — Hardening & Demo Preparation ❌ NOT STARTED
+## Sprint 10 — Hardening & Demo Preparation 🚧 IN PROGRESS
 
-Planned: E2E test suite, security audit (CORS, rate limiting, FluentValidation, SQL injection review), SignalR load test (50 devices), Arabic RTL QA, onboarding wizard, graduation report.
+- ✅ **Error handling** — `ExceptionMiddleware` catches all unhandled exceptions; returns structured JSON `{ error: "..." }` with 500; logs via `ILogger`
+- ✅ **Rate limiting** — built-in .NET 8 fixed-window rate limiter: 10 requests/minute per IP on `/auth/login`, `/auth/staff/pin-login`, `/admin/auth/login`; returns JSON 429 on rejection
+- ✅ **FluentValidation** — `FluentValidation.AspNetCore` added; validators for `LoginRequest`, `StaffPinLoginRequest`, `RegisterManagerRequest`, `CreateTenantRequest`, `AdminCreateManagerRequest`; auto-validation returns 400 on invalid input
+- ✅ **Arabic RTL QA** — `text-left` → `text-start`, `ml-auto`/`mr-` → `ms-auto`/`me-` in CustomerMenu, Menu, Spaces, WaiterApp, TakeawayDisplay; `dir="rtl"` on `<html>` already flips flex layouts correctly
+- ✅ **TODO.md** — deferred sprint 10 tasks documented (load test, demo data, onboarding wizard, graduation report, E2E suite)
+
+**Deferred to TODO.md:**
+- [ ] Performance / SignalR load test (50 devices)
+- [ ] Demo data seed + onboarding wizard
+- [ ] Graduation report
+- [ ] E2E Playwright suite (all 83 regression tests)
 
 ---
 

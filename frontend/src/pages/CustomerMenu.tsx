@@ -549,7 +549,7 @@ export function CustomerMenu() {
                         <button
                           key={opt.id}
                           onClick={() => toggleModifier(group, opt.id)}
-                          className={`flex justify-between items-center p-3 rounded-xl border text-left transition-colors
+                          className={`flex justify-between items-center p-3 rounded-xl border text-start transition-colors
                             ${selected
                               ? 'border-brand bg-orange-50 text-zinc-900'
                               : 'border-zinc-200 hover:border-zinc-300 text-zinc-700'

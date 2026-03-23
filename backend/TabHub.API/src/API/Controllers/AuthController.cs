@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using TabHub.API.API.Dtos;
@@ -61,6 +62,7 @@ public class AuthController(
 
     /// <summary>Login with email and password. Returns access token; sets httpOnly refresh cookie.</summary>
     [AllowAnonymous]
+    [EnableRateLimiting("auth")]
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest req)
     {
@@ -138,6 +140,7 @@ public class AuthController(
 
     /// <summary>Login as staff with a PIN. Returns a short-lived access token.</summary>
     [AllowAnonymous]
+    [EnableRateLimiting("auth")]
     [HttpPost("staff/pin-login")]
     public async Task<IActionResult> StaffPinLogin([FromBody] StaffPinLoginRequest req)
     {

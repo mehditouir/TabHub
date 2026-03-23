@@ -663,7 +663,7 @@ export function Spaces() {
             {spaces.map(s => (
               <button key={s.id} onClick={() => setSelectedId(s.id)}
                 className={[
-                  'flex items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors',
+                  'flex items-center justify-between rounded-lg px-3 py-2 text-start text-sm transition-colors',
                   s.id === selectedId ? 'bg-brand text-white' : 'text-zinc-700 hover:bg-zinc-100',
                 ].join(' ')}>
                 <span className="truncate font-medium">{s.name}</span>

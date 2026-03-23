@@ -10,7 +10,8 @@
 CLAUDE.md                     — Project overview: stack, entry points, reference to FILEMAP.md
 FILEMAP.md                    — This file; 1-line description of every source file in the repo
 PROGRESS.md                   — Sprint-by-sprint progress tracker; updated on every feature change
-REGRESSION.md                 — 75 manual test scenarios covering all surfaces end-to-end
+REGRESSION.md                 — 83 manual test scenarios covering all surfaces end-to-end
+TODO.md                       — Sprint 10 deferred tasks: load test, demo data, graduation report, E2E Playwright suite
 .env.example                  — Template env vars (Postgres + ASP.NET); copy to .env for local dev
 .gitignore                    — Git ignore patterns for backend/frontend build artifacts
 docker-compose.yml            — Starts postgres:15-alpine on port 5432; mounts db-init.sql as entrypoint seed
@@ -70,7 +71,7 @@ scripts/db-init.sql           — Creates public.tenants, cafetunisia + restaura
 ## backend/TabHub.API/
 
 ```
-TabHub.API.csproj             — .NET 8 Web API project: EF Core, Npgsql, JWT Bearer, Argon2, Swagger, Application Insights
+TabHub.API.csproj             — .NET 8 Web API project: EF Core, Npgsql, JWT Bearer, Argon2, Swagger, FluentValidation, Application Insights
 Program.cs                    — App bootstrap: CORS, JWT, EF Core, SignalR, Swagger, Application Insights, middleware pipeline
 appsettings.json              — Base config: JWT placeholder key, AllowedHosts
 appsettings.Development.json  — Dev overrides: Postgres connection string, JWT dev key, token expiry timings
@@ -198,6 +199,13 @@ src/Infrastructure/Auth/ICurrentActor.cs        — Interface: ActorType, ActorI
 src/Infrastructure/Auth/JwtSettings.cs          — Config POCO: Key, Issuer, Audience, AccessTokenMinutes, RefreshTokenDays
 src/Infrastructure/Auth/PinHasher.cs            — BCrypt hasher (work factor 10) for staff PINs
 src/Infrastructure/Auth/TokenService.cs         — Generates manager/staff/superadmin JWTs (HS256) and SHA256-hashed refresh tokens
+src/Infrastructure/Auth/Validators/AuthValidators.cs — FluentValidation validators: LoginRequest, StaffPinLoginRequest, RegisterManagerRequest, CreateTenantRequest, AdminCreateManagerRequest
+```
+
+### backend/TabHub.API/src/Infrastructure/Middleware/
+
+```
+src/Infrastructure/Middleware/ExceptionMiddleware.cs — Catches unhandled exceptions; logs error; returns structured JSON 500 { error: "An unexpected error occurred." }
 ```
 
 ### backend/TabHub.API/src/Infrastructure/Multitenancy/

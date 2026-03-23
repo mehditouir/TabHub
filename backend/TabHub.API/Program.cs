@@ -1,12 +1,18 @@
 using System.Text;
+using System.Threading.RateLimiting;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Npgsql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using TabHub.API.API.Filters;
 using TabHub.API.API.Swagger;
 using TabHub.API.Infrastructure.Auth;
+using TabHub.API.Infrastructure.Auth.Validators;
+using TabHub.API.Infrastructure.Middleware;
 using TabHub.API.Infrastructure.Multitenancy;
 using TabHub.API.Infrastructure.Persistence;
 using TabHub.API.Infrastructure.Realtime;
@@ -38,8 +44,34 @@ builder.Services.AddCors(options =>
 // ── Application Insights (Linux App Service requires explicit SDK) ─────────────
 builder.Services.AddApplicationInsightsTelemetry();
 
+// ── Rate limiting ─────────────────────────────────────────────────────────────
+builder.Services.AddRateLimiter(opts =>
+{
+    // Auth endpoints: max 10 attempts per minute per IP
+    opts.AddFixedWindowLimiter("auth", o =>
+    {
+        o.PermitLimit         = 10;
+        o.Window              = TimeSpan.FromMinutes(1);
+        o.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        o.QueueLimit          = 0;
+    });
+
+    // Return JSON on 429 instead of plain text
+    opts.OnRejected = async (ctx, token) =>
+    {
+        ctx.HttpContext.Response.StatusCode  = StatusCodes.Status429TooManyRequests;
+        ctx.HttpContext.Response.ContentType = "application/json";
+        await ctx.HttpContext.Response.WriteAsync(
+            "{\"error\":\"Too many attempts. Please wait before trying again.\"}", token);
+    };
+});
+
 // ── Controllers ───────────────────────────────────────────────────────────────
 builder.Services.AddControllers(opts => opts.Filters.Add<TenantAuthorizationFilter>());
+
+// ── Input validation (FluentValidation) ───────────────────────────────────────
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
 
 // ── Real-time ─────────────────────────────────────────────────────────────────
 builder.Services.AddSignalR();
@@ -229,8 +261,10 @@ if (app.Environment.IsDevelopment())
 if (!app.Environment.IsEnvironment("Testing"))
     app.UseHttpsRedirection();
 
-app.UseStaticFiles();                  // serves wwwroot/uploads/ for local image storage
-app.UseCors("Frontend");               // must be before auth middleware
+app.UseMiddleware<ExceptionMiddleware>(); // catches unhandled exceptions → structured JSON 500
+app.UseStaticFiles();                    // serves wwwroot/uploads/ for local image storage
+app.UseCors("Frontend");                 // must be before auth middleware
+app.UseRateLimiter();                    // rate limiting on [EnableRateLimiting] endpoints
 app.UseMiddleware<TenantMiddleware>(); // 1st — resolves tenant + sets search_path
 app.UseAuthentication();              // 2nd — reads JWT
 app.UseAuthorization();               // 3rd — enforces policies

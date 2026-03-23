@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using TabHub.API.API.Dtos;
 using TabHub.API.Domain.Entities;
@@ -21,6 +22,7 @@ public class SuperAdminController(
 
     /// <summary>Login as super admin (no tenant required).</summary>
     [AllowAnonymous]
+    [EnableRateLimiting("auth")]
     [HttpPost("auth/login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest req)
     {

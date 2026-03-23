@@ -392,7 +392,7 @@ function OrdersTab() {
             {f === 'All' ? 'Tout' : STATUS_LABEL_FR[f as OrderStatus]}
           </button>
         ))}
-        <button onClick={refresh} className="ml-auto text-xs text-zinc-400 hover:text-zinc-700 flex-shrink-0">Actualiser</button>
+        <button onClick={refresh} className="ms-auto text-xs text-zinc-400 hover:text-zinc-700 flex-shrink-0">Actualiser</button>
       </div>
 
       {/* Order list */}

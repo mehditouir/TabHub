@@ -100,7 +100,7 @@ export function TakeawayDisplay() {
               <div className="flex items-center gap-2 px-6 py-4 border-b border-zinc-800">
                 <span className={`h-3 w-3 rounded-full ${col.dot}`} />
                 <span className="text-lg font-semibold uppercase tracking-wider">{col.label}</span>
-                <span className="ml-auto text-2xl font-bold text-zinc-300">{items.length}</span>
+                <span className="ms-auto text-2xl font-bold text-zinc-300">{items.length}</span>
               </div>
 
               {/* Order cards */}
@@ -138,7 +138,7 @@ function OrderCard({ order, dotColor }: { order: Order; dotColor: string }) {
         {order.items.map(item => (
           <li key={item.id} className="flex justify-between text-sm">
             <span className="text-zinc-200">
-              <span className={`inline-block h-2 w-2 rounded-full ${dotColor} mr-1.5 align-middle`} />
+              <span className={`inline-block h-2 w-2 rounded-full ${dotColor} me-1.5 align-middle`} />
               {item.menuItemName}
             </span>
             <span className="text-zinc-400 ml-2">×{item.quantity}</span>
