@@ -17,7 +17,7 @@
 | 6 | Customer Ordering Interface | ✅ Complete |
 | 7 | Waiter Application | ✅ Complete |
 | 8 | Kitchen, Cashier & Takeaway | ✅ Complete |
-| 9 | Cloud Deployment & CI/CD | 🚧 In Progress |
+| 9 | Cloud Deployment & CI/CD | ✅ Complete |
 | 10 | Hardening & Demo Preparation | ❌ Not started |
 
 ---
@@ -194,7 +194,7 @@ Depends on Sprint 7 completion.
 
 ---
 
-## Sprint 9 — Cloud Deployment & CI/CD 🚧 IN PROGRESS
+## Sprint 9 — Cloud Deployment & CI/CD ✅ COMPLETE
 
 **IaC:** Bicep (not Terraform) — `infra/` folder with modules pattern.
 **Routing:** Path-based (`/manager/:tenant/...`) — no custom domain needed for demo year.
@@ -216,8 +216,6 @@ Depends on Sprint 7 completion.
 - ✅ `backend.yml` workflow — fixed: both API and Tests projects built before test step
 - ✅ `documentation/diagrams/sprints/sprint9/01-azure-infrastructure.md` — updated to reflect actual architecture (path-based routing, no Front Door, no APK)
 - ✅ `documentation/diagrams/sprints/sprint9/02-cicd-pipeline.md` — updated to reflect actual 3-workflow CI/CD pipeline
-
-**Blocked on:** GitHub secrets from Mehdi (see `infra/PENDING_SETUP.md`)
 
 **Production fixes applied:**
 - ✅ Fix 1 (image upload): `BlobImageStorageService` already implemented; resolves when Key Vault secret is set
