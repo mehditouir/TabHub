@@ -5,19 +5,19 @@
 
 ## Project Timeline Overview
 
-| Sprint | Focus | Duration | Weeks |
-|--------|-------|----------|-------|
-| Sprint 0 | Foundation & Architecture | 2 weeks | W1–W2 |
-| Sprint 1 | Identity & Restaurant Setup | 2 weeks | W3–W4 |
-| Sprint 2 | Menu System | 2 weeks | W5–W6 |
-| Sprint 3 | Order Engine & Billing | 2 weeks | W7–W8 |
-| Sprint 4 | Real-Time Layer (SignalR) | 2 weeks | W9–W10 |
-| Sprint 5 | Manager Dashboard (Web) | 2 weeks | W11–W12 |
-| Sprint 6 | Customer Ordering Interface | 2 weeks | W13–W14 |
-| Sprint 7 | Waiter Application | 2 weeks | W15–W16 |
-| Sprint 8 | Kitchen, Cashier & Takeaway | 2 weeks | W17–W18 |
-| Sprint 9 | Cloud Deployment & CI/CD | 2 weeks | W19–W20 |
-| Sprint 10 | Hardening & Demo Preparation | 2 weeks | W21–W22 |
+| Sprint | Focus | Duration | Weeks | Status |
+|--------|-------|----------|-------|--------|
+| Sprint 0 | Foundation & Architecture | 2 weeks | W1–W2 | ✅ Complete |
+| Sprint 1 | Identity & Restaurant Setup | 2 weeks | W3–W4 | ✅ Complete |
+| Sprint 2 | Menu System | 2 weeks | W5–W6 | ✅ Complete |
+| Sprint 3 | Order Engine & Billing | 2 weeks | W7–W8 | ✅ Complete |
+| Sprint 4 | Real-Time Layer (SignalR) | 2 weeks | W9–W10 | ✅ Complete |
+| Sprint 5 | Manager Dashboard (Web) | 2 weeks | W11–W12 | ✅ Complete |
+| Sprint 6 | Customer Ordering Interface | 2 weeks | W13–W14 | ✅ Complete |
+| Sprint 7 | Waiter Application | 2 weeks | W15–W16 | ✅ Complete |
+| Sprint 8 | Kitchen, Cashier & Takeaway | 2 weeks | W17–W18 | ✅ Complete |
+| Sprint 9 | Cloud Deployment & CI/CD | 2 weeks | W19–W20 | ❌ Not started |
+| Sprint 10 | Hardening & Demo Preparation | 2 weeks | W21–W22 | ❌ Not started |
 
 **Total duration: ~22 weeks (~5.5 months)**
 
@@ -60,14 +60,15 @@ These choices apply globally and are documented here to avoid repetition in each
 - **Vite**: significantly faster build times than Webpack (Create React App), important for developer productivity during 10 sprints.
 - **Blazor** was considered (C# everywhere) but rejected: the React ecosystem is more mature for complex UIs (floor plan grid, real-time dashboards), and the team has no Blazor experience.
 
-### Mobile & Tablet — Ionic React + Capacitor
-**Why Ionic over MAUI / Flutter / React Native?**
-- **Code sharing**: Ionic React shares components with the React web frontend — the same UI components, hooks, and API clients are reused across web and tablet apps. Estimated ~40% code reuse.
-- **React knowledge reuse**: developers write React — no new language or framework to learn.
-- **MAUI** was evaluated: while it leverages C# (team strength), it does not share code with the React frontend, is still maturing, and has a smaller component ecosystem.
-- **Flutter** was rejected: requires Dart (no existing knowledge) and shares no code with the web stack.
-- **React Native** was rejected: different rendering model from web React (no HTML/CSS), breaking the component sharing advantage.
-- **Capacitor**: modern native bridge, replacing Cordova, with excellent Android support and access to device features (kiosk mode, push notifications).
+### Staff Tablet Apps — Responsive Web (React + Vite)
+**Original plan: Ionic React + Capacitor. Replaced during Sprint 7.**
+
+The waiter app was initially planned as an Ionic React + Capacitor Android APK. During implementation it became clear that:
+- A responsive web page running in a tablet browser achieves the same UX with far less build complexity (no Capacitor build pipeline, no APK signing, no device-specific testing).
+- The same React stack used for the manager dashboard and customer menu is reused directly — components, hooks, API clients, SignalR integration, i18n all shared with zero bridging.
+- Kiosk-mode browsers (Chrome on Android, Safari on iPad) provide adequate fullscreen and keep-awake behaviour for restaurant use.
+
+All staff apps (waiter, kitchen, cashier, takeaway display) are now responsive web pages served from the same Vite SPA. The `mobile/` directory was removed. Ionic and Capacitor dependencies were dropped entirely.
 
 ### Real-Time — ASP.NET Core SignalR
 **Why SignalR over raw WebSockets / Socket.io / Server-Sent Events?**
@@ -93,7 +94,7 @@ These choices apply globally and are documented here to avoid repetition in each
 
 ---
 
-## Sprint 0 — Foundation & Architecture
+## Sprint 0 — Foundation & Architecture ✅ COMPLETE
 **Duration:** 2 weeks | **Weeks:** 1–2
 
 ### Objectives
@@ -130,7 +131,7 @@ See global section above for full justifications.
 
 ---
 
-## Sprint 1 — Identity & Restaurant Setup
+## Sprint 1 — Identity & Restaurant Setup ✅ COMPLETE
 **Duration:** 2 weeks | **Weeks:** 3–4
 
 ### Objectives
@@ -168,7 +169,7 @@ Implement authentication for all user types and the full restaurant configuratio
 
 ---
 
-## Sprint 2 — Menu System
+## Sprint 2 — Menu System ✅ COMPLETE
 **Duration:** 2 weeks | **Weeks:** 5–6
 
 ### Objectives
@@ -206,7 +207,7 @@ Build the full menu management system: multilingual menus with flexible scheduli
 
 ---
 
-## Sprint 3 — Order Engine & Billing
+## Sprint 3 — Order Engine & Billing ✅ COMPLETE
 **Duration:** 2 weeks | **Weeks:** 7–8
 
 ### Objectives
@@ -240,7 +241,7 @@ Implement the core business logic: table sessions, the full order lifecycle, PDF
 
 ---
 
-## Sprint 4 — Real-Time Layer (SignalR)
+## Sprint 4 — Real-Time Layer (SignalR) ✅ COMPLETE
 **Duration:** 2 weeks | **Weeks:** 9–10
 
 ### Objectives
@@ -272,7 +273,7 @@ Add real-time communication to the system. Notifications flow instantly between 
 
 ---
 
-## Sprint 5 — Manager Dashboard (Web)
+## Sprint 5 — Manager Dashboard (Web) ✅ COMPLETE
 **Duration:** 2 weeks | **Weeks:** 11–12
 
 ### Objectives
@@ -309,7 +310,7 @@ Build the full manager web dashboard — the primary management interface. Acces
 
 ---
 
-## Sprint 6 — Customer Ordering Interface
+## Sprint 6 — Customer Ordering Interface ✅ COMPLETE
 **Duration:** 2 weeks | **Weeks:** 13–14
 
 ### Objectives
@@ -344,34 +345,35 @@ Build the customer-facing ordering interface — the most user-visible part of t
 
 ---
 
-## Sprint 7 — Waiter Application
+## Sprint 7 — Waiter Application ✅ COMPLETE
 **Duration:** 2 weeks | **Weeks:** 15–16
 
 ### Objectives
-Build the Ionic React waiter tablet application — the role with the most complex interactions (notifications, floor plan, table operations, validation).
+Build the waiter tablet application — the role with the most complex interactions (notifications, floor plan, table operations, validation).
+
+> **Architecture note:** Originally planned as an Ionic React + Capacitor Android APK. Rewritten during this sprint as a responsive web page at `/waiter/:tenant` in the same Vite SPA. Ionic and Capacitor dropped entirely; `mobile/` directory removed. See Technology Choices section for rationale.
 
 ### Deliverables
-- PIN login screen
-- Floor plan view (assigned zones only, colour-coded statuses)
-- Real-time notification overlay on table squares
-- Competing consumer ACK on notification tap
-- Order validation screen (review items, confirm or reject)
-- Place order directly from tablet (skip validation, to kitchen)
+- PIN keypad login (staff JWT, role: Waiter)
+- Floor plan view (assigned zones only, colour-coded statuses: free / occupied / attention)
+- Real-time notification overlay (`NewOrderNotification`, `WaiterCalled`, `BillRequested`)
+- Competing consumer ACK on notification tap (409 = "already taken")
+- Order queue tab with status filters + advance / cancel per order
+- Place order directly from tablet (staff path, straight to InProgress)
 - Move session to another table
 - Merge table sessions
-- Close session (after bill paid)
-- Generate + print PDF bill (open signed URL)
-- Notification types: order submitted, waiter called, bill requested, order ready, item rejected
+- Close session + PDF bill in iframe
+- `WaiterContext` — global auth + hub state shared across tabs and notification overlay
+- `useWaiterHub` SignalR hook with auto-reconnect
 
 ### Definition of Done
-> Encadrant can see: on a tablet (or browser simulating tablet), waiter logs in with PIN, sees floor plan with only their assigned zone tables. A customer orders from another browser tab — notification flashes on table square. Waiter validates, moves a table, merges two sessions. Bill printed.
+> Encadrant can see: on a tablet (or browser simulating tablet), waiter logs in with PIN, sees floor plan with only their assigned zone tables. A customer orders from another browser tab — notification banner appears. Waiter ACKs, advances order, moves a table, merges two sessions. Bill opened as PDF.
 
 ### Technology Choices Introduced
 
 | Choice | Alternative Considered | Decision |
 |--------|----------------------|----------|
-| Ionic React (shared components) | Separate native Android app | Ionic React — ~40% component reuse from web frontend; single codebase for all staff apps |
-| Capacitor (APK packaging) | Cordova, PWA for tablets | Capacitor — modern, actively maintained, better device API access than PWA |
+| Responsive web page (React + Vite) | Ionic React + Capacitor APK | Web page — same stack as manager/customer, no build pipeline, works in tablet browser kiosk mode |
 | No idle logout (staff) | Auto-logout after inactivity | Dedicated tablets are always-on; idle logout would disrupt mid-service operations |
 
 ### Diagrams (sprint7/)
@@ -380,7 +382,7 @@ Build the Ionic React waiter tablet application — the role with the most compl
 
 ---
 
-## Sprint 8 — Kitchen, Cashier & Takeaway
+## Sprint 8 — Kitchen, Cashier & Takeaway ✅ COMPLETE
 **Duration:** 2 weeks | **Weeks:** 17–18
 
 ### Objectives
@@ -421,34 +423,38 @@ Complete all remaining tablet applications and the takeaway display screen. Afte
 **Duration:** 2 weeks | **Weeks:** 19–20
 
 ### Objectives
-Deploy the entire platform to Microsoft Azure. Set up automated CI/CD pipelines. Configure production environments with proper secrets management.
+Deploy the entire platform to Microsoft Azure using the 12-month free tier. Set up automated CI/CD pipelines. Configure production environments with proper secrets management.
 
 ### Deliverables
-- Azure App Service (API, production + staging slots)
-- Azure Database for PostgreSQL Flexible Server (production)
-- Azure Blob Storage + CDN (photos + PDF bills)
+- Azure App Service B1 Linux (API, production + staging slots) — free 12 months
+- Azure Database for PostgreSQL Flexible Server Burstable B1ms — free 12 months
+- Azure Blob Storage 5 GB (photos) — free 12 months
+- Azure Static Web Apps (React frontend) — always free
 - Azure Key Vault (all secrets via Managed Identity)
-- Azure Static Web Apps (React frontend)
 - GitHub Actions pipelines:
   - Backend: build → test → deploy to staging → promote to production
   - Frontend: build → deploy to Static Web Apps
-- Custom subdomain routing (`{tenant}.tabhub.tn`)
-- SSL certificates (auto-managed by Azure)
+- **Path-based tenant routing** (`azurewebsites.net/manager/:tenant/...`, `/waiter/:tenant`, etc.) — no custom domain required
+- SSL certificates (auto-managed by Azure on free subdomains)
 - Environment separation: Development / Staging / Production
-- Application Insights (logging + monitoring)
+- Application Insights (logging + monitoring, first 5 GB/month free)
+
+> **Routing decision:** Subdomain-based routing (`{tenant}.tabhub.tn`) was dropped in favour of path-based routing. All surfaces already use `:tenant` in the URL path. No custom domain or wildcard DNS needed — Azure free subdomains (`*.azurewebsites.net`, `*.azurestaticapps.net`) are sufficient for the demo period.
 
 ### Definition of Done
-> Encadrant can see: the live app at `demo.tabhub.tn`. A push to the `main` branch on GitHub triggers automatic deployment. Application Insights shows live request telemetry.
+> Encadrant can see: the live app at `tabhub.azurewebsites.net`. A push to the `main` branch on GitHub triggers automatic deployment. Application Insights shows live request telemetry.
 
 ### Technology Choices Introduced
 
 | Choice | Alternative Considered | Decision |
 |--------|----------------------|----------|
-| Azure App Service | Azure Container Apps, AKS | App Service — simplest managed hosting for a single-tenant API; no orchestration overhead |
-| GitHub Actions | Azure DevOps, Jenkins | GitHub Actions — native GitHub integration, free for public repos, YAML-based |
-| Azure Managed Identity | Connection strings with passwords | Managed Identity — no credentials stored anywhere; App Service authenticates to Key Vault automatically |
+| Azure App Service B1 (free 12 mo) | Azure Container Apps, AKS | App Service — simplest managed hosting; free tier covers the full demo period |
+| Azure PostgreSQL Flexible Server (free 12 mo) | Postgres container, Neon.tech | Managed server — persistent, zero config, free for 12 months; containers need paid persistent storage |
+| Path-based tenant routing | Subdomain routing (`{tenant}.tabhub.tn`) | Path-based — no custom domain cost, no wildcard DNS, already supported by frontend router |
+| GitHub Actions | Azure DevOps, Jenkins | GitHub Actions — native GitHub integration, 2000 min/month free |
+| Azure Managed Identity | Connection strings with passwords | Managed Identity — no credentials stored anywhere |
 | App Service deployment slots | Blue/green on separate instances | Slots — built-in staging → production swap with zero downtime |
-| Azure Application Insights | Serilog to file, Datadog | Application Insights — native Azure, no extra cost on basic tier, integrates with App Service |
+| Azure Application Insights | Serilog to file, Datadog | Application Insights — native Azure, no extra cost on basic tier |
 
 ### Diagrams (sprint9/)
 - `01-azure-infrastructure.md` — Detailed Azure resource topology

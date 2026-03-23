@@ -46,7 +46,8 @@
       "Bash(git --version)",
       "Bash(ssh -T git@github.com)",
       "Bash(powershell -Command \"Remove-Item -Recurse -Force ''D:\\\\Projects\\\\TabHub\\\\mobile\\\\.git''\")",
-      "Bash(powershell -Command \"Remove-Item -Recurse -Force ''D:\\\\Projects\\\\TabHub\\\\mobile''\")"
+      "Bash(powershell -Command \"Remove-Item -Recurse -Force ''D:\\\\Projects\\\\TabHub\\\\mobile''\")",
+      "Bash(find D:ProjectsTabHubfrontendsrc -name *useAuth* -o -name *hook*)"
     ]
   }
 }
