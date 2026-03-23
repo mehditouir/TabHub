@@ -156,6 +156,7 @@ app.UseAuthorization();               // 3rd — enforces policies
 
 app.MapControllers();
 app.MapHub<OrderHub>("/hubs/orders");
+app.MapGet("/health", () => Results.Ok(new { status = "healthy" })).AllowAnonymous();
 
 app.Run();
 
