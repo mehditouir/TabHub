@@ -177,7 +177,25 @@ if (!app.Environment.IsEnvironment("Testing"))
                 await using var conn = new NpgsqlConnection(connStr);
                 await conn.OpenAsync();
 
-                // Skip if already seeded (idempotency guard — avoids pg_type conflicts on restart)
+                // Always ensure the super admin account exists (runs on every restart, idempotent)
+                await using var superAdminCmd = new NpgsqlCommand("""
+                    INSERT INTO public.managers (id, email, password_hash, display_name, is_super_admin, is_active, created_at, updated_at)
+                    VALUES (
+                        '00000000-0000-0000-0000-000000000002',
+                        'mehdi@mehdi.com',
+                        'v1:yBlvQEuHLrESSCiKbP1bug==:cTBvblA+3YxUuFTvD/40bsEPPmMc7PZ3RACPxYpstMs=',
+                        'Mehdi',
+                        true,
+                        true,
+                        NOW(),
+                        NOW()
+                    )
+                    ON CONFLICT (email) DO UPDATE SET is_super_admin = true
+                    """, conn);
+                await superAdminCmd.ExecuteNonQueryAsync();
+                startupLogger.LogInformation("Super admin account ensured");
+
+                // Skip full seed if already seeded (idempotency guard — avoids pg_type conflicts on restart)
                 await using var checkCmd = new NpgsqlCommand(
                     "SELECT COUNT(*) FROM information_schema.schemata WHERE schema_name = 'cafetunisia'", conn);
                 var exists = (long)(await checkCmd.ExecuteScalarAsync())! > 0;
