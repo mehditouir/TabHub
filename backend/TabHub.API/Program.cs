@@ -21,9 +21,15 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
         policy
-            .WithOrigins(
-                builder.Configuration["Cors:AllowedOrigins"]?.Split(',')
-                    ?? ["http://localhost:5173"])
+            .SetIsOriginAllowed(origin =>
+            {
+                if (origin == "http://localhost:5173") return true;
+                // Allow any Azure Static Web Apps hostname (covers all environments)
+                if (origin.EndsWith(".azurestaticapps.net", StringComparison.OrdinalIgnoreCase)) return true;
+                // Also honour explicit origins from app settings
+                var configured = builder.Configuration["Cors:AllowedOrigins"]?.Split(',') ?? [];
+                return configured.Contains(origin, StringComparer.OrdinalIgnoreCase);
+            })
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials()); // required for SignalR WebSocket handshake
