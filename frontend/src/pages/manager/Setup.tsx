@@ -3,14 +3,14 @@
  * Route: /manager/:tenant/setup
  * 4 steps: Restaurant config → Spaces → Staff → Menu
  */
-import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
-import { setConfig }      from '@/lib/api/config'
-import { createSpace, createTable } from '@/lib/api/spaces'
-import { createStaff }    from '@/lib/api/staff'
+import { setConfig } from '@/lib/api/config'
 import { createCategory, createMenuItem } from '@/lib/api/menu'
+import { createSpace, createTable } from '@/lib/api/spaces'
+import { createStaff } from '@/lib/api/staff'
 import { cn } from '@/lib/utils'
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { useNavigate, useParams } from 'react-router-dom'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -48,7 +48,7 @@ type Step = typeof STEPS[number]
 const STEP_META: Record<Step, { icon: string; benefit: string }> = {
   restaurant: {
     icon: '🏪',
-    benefit: 'Votre nom et TVA s'affichent automatiquement sur chaque ticket imprimé et dans les rapports. Configurez-les une fois, profitez-en partout.',
+    benefit: 'Votre nom et TVA s\'affichent automatiquement sur chaque ticket imprimé et dans les rapports. Configurez-les une fois, profitez-en partout.',
   },
   spaces: {
     icon: '🗺️',
@@ -67,14 +67,14 @@ const STEP_META: Record<Step, { icon: string; benefit: string }> = {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function Setup() {
-  const { tenant }   = useParams<{ tenant: string }>()
-  const navigate     = useNavigate()
-  const { t }        = useTranslation()
+  const { tenant } = useParams<{ tenant: string }>()
+  const navigate = useNavigate()
+  const { t } = useTranslation()
 
-  const [step,    setStep]    = useState<Step>('restaurant')
-  const [data,    setData]    = useState<StepData>(INITIAL)
-  const [saving,  setSaving]  = useState(false)
-  const [error,   setError]   = useState<string | null>(null)
+  const [step, setStep] = useState<Step>('restaurant')
+  const [data, setData] = useState<StepData>(INITIAL)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const stepIndex = STEPS.indexOf(step)
 
@@ -103,9 +103,9 @@ export function Setup() {
       Array.from({ length: count }, (_, i) =>
         createTable({
           spaceId: space.id,
-          number:  String(i + 1),
-          col:     i % 4,
-          row:     Math.floor(i / 4),
+          number: String(i + 1),
+          col: i % 4,
+          row: Math.floor(i / 4),
         })
       )
     )
@@ -114,17 +114,17 @@ export function Setup() {
   async function saveStaff() {
     await createStaff({
       displayName: data.staffName,
-      role:        data.staffRole,
-      pin:         data.staffPin,
+      role: data.staffRole,
+      pin: data.staffPin,
     })
   }
 
   async function saveMenu() {
     const cat = await createCategory(data.categoryName)
     await createMenuItem({
-      categoryId:  cat.id,
-      name:        data.itemName,
-      price:       parseFloat(data.itemPrice) || 0,
+      categoryId: cat.id,
+      name: data.itemName,
+      price: parseFloat(data.itemPrice) || 0,
     })
   }
 
@@ -135,8 +135,8 @@ export function Setup() {
     setError(null)
     try {
       if (step === 'restaurant') await saveRestaurant()
-      if (step === 'spaces')     await saveSpaces()
-      if (step === 'staff')      await saveStaff()
+      if (step === 'spaces') await saveSpaces()
+      if (step === 'staff') await saveStaff()
       if (step === 'menu') {
         await saveMenu()
         navigate(`/manager/${tenant}/dashboard`, { replace: true })
@@ -177,9 +177,9 @@ export function Setup() {
           <div key={s} className="flex flex-1 flex-col items-center gap-1">
             <div className={cn(
               'flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-colors',
-              i < stepIndex  ? 'bg-green-500 text-white'
-              : i === stepIndex ? 'bg-brand text-white'
-              : 'bg-zinc-200 text-zinc-400'
+              i < stepIndex ? 'bg-green-500 text-white'
+                : i === stepIndex ? 'bg-brand text-white'
+                  : 'bg-zinc-200 text-zinc-400'
             )}>
               {i < stepIndex ? '✓' : i + 1}
             </div>
@@ -212,9 +212,9 @@ export function Setup() {
         {/* Form fields */}
         <div className="px-8 py-6 flex flex-col gap-4">
           {step === 'restaurant' && <RestaurantStep data={data} update={update} />}
-          {step === 'spaces'     && <SpacesStep     data={data} update={update} />}
-          {step === 'staff'      && <StaffStep      data={data} update={update} />}
-          {step === 'menu'       && <MenuStep       data={data} update={update} />}
+          {step === 'spaces' && <SpacesStep data={data} update={update} />}
+          {step === 'staff' && <StaffStep data={data} update={update} />}
+          {step === 'menu' && <MenuStep data={data} update={update} />}
 
           {error && (
             <p className="rounded-lg bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-600">{error}</p>
@@ -398,16 +398,16 @@ function MenuStep({ data, update }: { data: StepData; update: (p: Partial<StepDa
 function stepTitle(step: Step): string {
   return {
     restaurant: 'Votre restaurant',
-    spaces:     'Vos espaces & tables',
-    staff:      'Votre premier employé',
-    menu:       'Votre premier plat',
+    spaces: 'Vos espaces & tables',
+    staff: 'Votre premier employé',
+    menu: 'Votre premier plat',
   }[step]
 }
 
 function isStepValid(step: Step, data: StepData): boolean {
   if (step === 'restaurant') return data.restaurantName.trim().length > 0
-  if (step === 'spaces')     return data.spaceName.trim().length > 0
-  if (step === 'staff')      return data.staffName.trim().length > 0 && data.staffPin.length >= 4
-  if (step === 'menu')       return data.categoryName.trim().length > 0 && data.itemName.trim().length > 0
+  if (step === 'spaces') return data.spaceName.trim().length > 0
+  if (step === 'staff') return data.staffName.trim().length > 0 && data.staffPin.length >= 4
+  if (step === 'menu') return data.categoryName.trim().length > 0 && data.itemName.trim().length > 0
   return true
 }
