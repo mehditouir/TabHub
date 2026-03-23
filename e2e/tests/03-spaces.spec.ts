@@ -2,6 +2,7 @@
  * Module 3 — Spaces & Tables
  * T-10 through T-13
  *
+ * E2E creates its own "E2E Terrasse" space — never relies on seed data.
  * After T-11, saves the QR token for table T1 to run-state.json
  * so customer ordering tests (07-customer.spec.ts) can use it.
  */
@@ -9,7 +10,8 @@
 import { test, expect } from '@playwright/test'
 import { writeState }   from '../helpers/state'
 
-const TENANT = process.env.MANAGER_TENANT ?? 'cafetunisia'
+const TENANT    = process.env.MANAGER_TENANT ?? 'cafetunisia'
+const SPACE_NAME = 'E2E Terrasse'
 
 test.use({ storageState: 'manager-auth.json' })
 
@@ -22,10 +24,9 @@ test.describe.serial('Module 3 — Spaces & Tables', () => {
     // Navigate to Editor tab
     await page.getByRole('tab', { name: /editor/i }).click()
 
-    // Check if Terrasse already exists
-    const existingSpace = page.getByText('Terrasse', { exact: true })
+    // Check if E2E Terrasse already exists
+    const existingSpace = page.getByText(SPACE_NAME, { exact: true })
     if (await existingSpace.isVisible({ timeout: 2000 }).catch(() => false)) {
-      // Already exists — just verify
       await expect(existingSpace).toBeVisible()
       return
     }
@@ -33,12 +34,12 @@ test.describe.serial('Module 3 — Spaces & Tables', () => {
     // Create new space
     await page.getByRole('button', { name: /new space/i }).click()
     const dialog = page.locator('[role="dialog"], .modal, form').filter({ hasText: /name|space/i }).first()
-    await dialog.getByLabel(/name/i).fill('Terrasse')
+    await dialog.getByLabel(/name/i).fill(SPACE_NAME)
     await dialog.getByLabel(/col/i).fill('4')
     await dialog.getByLabel(/row/i).fill('3')
     await page.getByRole('button', { name: /save|create/i }).click()
 
-    await expect(page.getByText('Terrasse', { exact: true })).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(SPACE_NAME, { exact: true })).toBeVisible({ timeout: 5000 })
   })
 
   test('T-11 — Add tables to the grid', async ({ page }) => {
@@ -46,8 +47,8 @@ test.describe.serial('Module 3 — Spaces & Tables', () => {
     await page.waitForLoadState('networkidle')
     await page.getByRole('tab', { name: /editor/i }).click()
 
-    // Select Terrasse space
-    await page.getByText('Terrasse', { exact: true }).click()
+    // Select E2E Terrasse space
+    await page.getByText(SPACE_NAME, { exact: true }).click()
     await page.waitForLoadState('networkidle')
 
     // Check if tables already exist
@@ -79,7 +80,7 @@ test.describe.serial('Module 3 — Spaces & Tables', () => {
     await page.goto(`/manager/${TENANT}/spaces`)
     await page.waitForLoadState('networkidle')
     await page.getByRole('tab', { name: /editor/i }).click()
-    await page.getByText('Terrasse', { exact: true }).click()
+    await page.getByText(SPACE_NAME, { exact: true }).click()
 
     // Click first QR button in the grid
     const qrBtn = page.getByRole('button', { name: /qr/i }).first()
@@ -109,10 +110,7 @@ test.describe.serial('Module 3 — Spaces & Tables', () => {
     await page.goto(`/manager/${TENANT}/spaces`)
     await page.waitForLoadState('networkidle')
     await page.getByRole('tab', { name: /editor/i }).click()
-    await page.getByText('Terrasse', { exact: true }).click()
-
-    // Count existing tables before delete
-    const tablesBefore = page.locator('[data-testid*="table"], .table-cell--occupied').count()
+    await page.getByText(SPACE_NAME, { exact: true }).click()
 
     // Right-click or click delete on the last table found
     const deleteBtn = page.getByRole('button', { name: /delete|remove/i }).last()
@@ -136,9 +134,8 @@ test.describe.serial('Module 3 — Spaces & Tables', () => {
     await page.reload()
     await page.waitForLoadState('networkidle')
     await page.getByRole('tab', { name: /editor/i }).click()
-    await page.getByText('Terrasse', { exact: true }).click()
-    // Just verify page loads correctly without error
-    await expect(page.getByText('Terrasse', { exact: true })).toBeVisible()
+    await page.getByText(SPACE_NAME, { exact: true }).click()
+    await expect(page.getByText(SPACE_NAME, { exact: true })).toBeVisible()
   })
 
 })

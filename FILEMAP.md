@@ -63,7 +63,7 @@ infra/modules/appsettings.bicep   — Web App config resource with all app setti
 ## scripts/
 
 ```
-scripts/db-init.sql           — Creates public.tenants, cafetunisia + restauranttunisia schemas, all tables; seeds dev manager account
+scripts/db-init.sql           — Creates public + tenant schemas, all tables; full demo seed data for cafetunisia + restauranttunisia (idempotent ON CONFLICT DO NOTHING)
 ```
 
 ---
@@ -469,9 +469,10 @@ src/pages/Login.test.tsx         — Tests: form submission, error display, role
 
 ```
 src/pages/manager/Config.tsx          — Settings page: restaurant name, TVA rate, default language, per-day opening hours
-src/pages/manager/Dashboard.tsx       — KPI cards (order counts), avg completion time, 30-day revenue chart, top items list; i18n
+src/pages/manager/Dashboard.tsx       — KPI cards (order counts), avg completion time, 30-day revenue chart, top items; onboarding CTA when no spaces exist
 src/pages/manager/Dashboard.test.tsx  — Tests: KPI values, revenue total, top items rendered from MSW fixtures
 src/pages/manager/Menu.tsx            — Category accordion + item rows; create/edit/delete modals; photo upload for items; i18n
+src/pages/manager/Setup.tsx           — NEW: Onboarding wizard (4 steps: restaurant → spaces → staff → menu); shown to new tenants with zero spaces
 src/pages/manager/Spaces.tsx          — Space list + 3 tabs: Editor (grid + QR modals), Live (real-time table status), Zones (waiter zone drag-assign); i18n
 src/pages/manager/Staff.tsx           — Staff list with role badges; create/edit/delete modal with separate PIN management; i18n
 ```
@@ -497,7 +498,8 @@ src/test/mocks/server.ts      — Creates msw setupServer with all handlers
 ## documentation/
 
 ```
-documentation/sprint-plan.md    — 10-sprint project timeline (2 weeks each, W1–W22, internship graduation project)
+documentation/sprint-plan.md          — 10-sprint project timeline (2 weeks each, W1–W22, internship graduation project)
+documentation/graduation-report.md   — NEW: Full graduation report (problem, architecture, sprints, decisions, results, roadmap)
 documentation/diagrams/README.md — Index of all Mermaid diagrams organized by sprint
 ```
 

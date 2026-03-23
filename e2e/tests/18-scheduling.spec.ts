@@ -38,12 +38,12 @@ test.describe.serial('Module 18 — Menu Scheduling', () => {
       }
     }
 
-    // Add Boissons category to Menu Test
+    // Add E2E Boissons category to Menu Test (created by 05-menu.spec.ts)
     const menuTestRow = page.locator('li, tr').filter({ hasText: 'Menu Test' }).first()
     const addCatBtn = menuTestRow.getByRole('button', { name: /add category|category/i })
     if (await addCatBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
       await addCatBtn.click()
-      await page.getByText('Boissons').first().click().catch(() => {})
+      await page.getByText('E2E Boissons').first().click().catch(() => {})
       await page.getByRole('button', { name: /add|save/i }).click().catch(() => {})
     }
 
@@ -81,8 +81,8 @@ test.describe.serial('Module 18 — Menu Scheduling', () => {
 
     await page.goto(menuUrl)
     await page.waitForLoadState('networkidle')
-    // Boissons category should appear (24h active menu)
-    await expect(page.getByText('Boissons')).toBeVisible({ timeout: 8000 })
+    // E2E Boissons category should appear (24h active menu)
+    await expect(page.getByText('E2E Boissons')).toBeVisible({ timeout: 8000 })
   })
 
   test('T-69 — Inactive menu hides its categories from customer', async ({ page }) => {

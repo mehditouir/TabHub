@@ -1,19 +1,26 @@
 import { useEffect, useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { getOrderSummary, getTopItems, getRevenue } from '@/lib/api/reports'
+import { getSpaces } from '@/lib/api/spaces'
 import { formatPrice } from '@/lib/utils'
 import type { OrderSummary, TopItem, RevenueReport } from '@/lib/types'
 
 export function Dashboard() {
-  const { t } = useTranslation()
-  const [summary,  setSummary]  = useState<OrderSummary | null>(null)
-  const [topItems, setTopItems] = useState<TopItem[]>([])
-  const [revenue,  setRevenue]  = useState<RevenueReport | null>(null)
-  const [loading,  setLoading]  = useState(true)
+  const { t }      = useTranslation()
+  const { tenant } = useParams<{ tenant: string }>()
+  const [summary,    setSummary]    = useState<OrderSummary | null>(null)
+  const [topItems,   setTopItems]   = useState<TopItem[]>([])
+  const [revenue,    setRevenue]    = useState<RevenueReport | null>(null)
+  const [loading,    setLoading]    = useState(true)
+  const [hasSpaces,  setHasSpaces]  = useState(true)
 
   useEffect(() => {
-    Promise.all([getOrderSummary(), getTopItems(5), getRevenue()])
-      .then(([s, t, r]) => { setSummary(s); setTopItems(t); setRevenue(r) })
+    Promise.all([getOrderSummary(), getTopItems(5), getRevenue(), getSpaces()])
+      .then(([s, top, r, spaces]) => {
+        setSummary(s); setTopItems(top); setRevenue(r)
+        setHasSpaces(spaces.length > 0)
+      })
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
@@ -23,6 +30,24 @@ export function Dashboard() {
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-2xl font-bold text-zinc-900">{t('dashboard.title')}</h1>
+
+      {/* Onboarding CTA — shown only when no spaces exist yet */}
+      {!hasSpaces && (
+        <div className="rounded-2xl border-2 border-dashed border-brand/40 bg-brand/5 px-8 py-8 text-center">
+          <div className="mb-3 text-4xl">🚀</div>
+          <h2 className="mb-2 text-xl font-bold text-zinc-900">Bienvenue sur TabHub !</h2>
+          <p className="mb-6 text-sm text-zinc-600 max-w-md mx-auto">
+            Votre restaurant n'est pas encore configuré. Suivez l'assistant en 4 étapes pour créer vos espaces,
+            ajouter votre équipe et publier votre menu — moins de 5 minutes.
+          </p>
+          <Link
+            to={`/manager/${tenant}/setup`}
+            className="inline-block rounded-lg bg-brand px-8 py-3 text-sm font-semibold text-white hover:bg-brand/80 transition-colors"
+          >
+            Commencer la configuration →
+          </Link>
+        </div>
+      )}
 
       {/* KPI cards */}
       {summary && (

@@ -16,6 +16,7 @@ import { Menu }           from '@/pages/manager/Menu'
 import { Spaces }         from '@/pages/manager/Spaces'
 import { Staff }          from '@/pages/manager/Staff'
 import { Config }         from '@/pages/manager/Config'
+import { Setup }          from '@/pages/manager/Setup'
 import { AdminLogin }     from '@/pages/admin/AdminLogin'
 import { AdminDashboard } from '@/pages/admin/AdminDashboard'
 import { getAdminToken }  from '@/lib/api/admin'
@@ -93,6 +94,7 @@ export const router = createBrowserRouter([
       { path: 'spaces',    element: <Spaces /> },
       { path: 'staff',     element: <Staff /> },
       { path: 'config',    element: <Config /> },
+      { path: 'setup',     element: <Setup />  },
     ],
   },
 

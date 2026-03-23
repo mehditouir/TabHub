@@ -18,7 +18,7 @@
 | 7 | Waiter Application | ✅ Complete |
 | 8 | Kitchen, Cashier & Takeaway | ✅ Complete |
 | 9 | Cloud Deployment & CI/CD | ✅ Complete |
-| 10 | Hardening & Demo Preparation | 🚧 In Progress |
+| 10 | Hardening & Demo Preparation | ✅ Complete |
 
 ---
 
@@ -225,19 +225,16 @@ Depends on Sprint 7 completion.
 
 ---
 
-## Sprint 10 — Hardening & Demo Preparation 🚧 IN PROGRESS
+## Sprint 10 — Hardening & Demo Preparation ✅ COMPLETE
 
 - ✅ **Error handling** — `ExceptionMiddleware` catches all unhandled exceptions; returns structured JSON `{ error: "..." }` with 500; logs via `ILogger`
 - ✅ **Rate limiting** — built-in .NET 8 fixed-window rate limiter: 10 requests/minute per IP on `/auth/login`, `/auth/staff/pin-login`, `/admin/auth/login`; returns JSON 429 on rejection
 - ✅ **FluentValidation** — `FluentValidation.AspNetCore` added; validators for `LoginRequest`, `StaffPinLoginRequest`, `RegisterManagerRequest`, `CreateTenantRequest`, `AdminCreateManagerRequest`; auto-validation returns 400 on invalid input
 - ✅ **Arabic RTL QA** — `text-left` → `text-start`, `ml-auto`/`mr-` → `ms-auto`/`me-` in CustomerMenu, Menu, Spaces, WaiterApp, TakeawayDisplay; `dir="rtl"` on `<html>` already flips flex layouts correctly
-- ✅ **TODO.md** — deferred sprint 10 tasks documented (load test, demo data, onboarding wizard, graduation report, E2E suite)
-
-**Deferred to TODO.md:**
-- [ ] Performance / SignalR load test (50 devices)
-- [ ] Demo data seed + onboarding wizard
-- [ ] Graduation report
-- [ ] E2E Playwright suite (all 83 regression tests)
+- ✅ **E2E Playwright suite** — 83 tests (T-01–T-83), 21 modules, sequential workers, multi-context SignalR tests, idempotent find-or-create, traces on failure
+- ✅ **Demo data seed** — `db-init.sql` fully seeded: cafetunisia (8 items, 2 spaces, 3 staff) + restauranttunisia (23 items, 5 categories, 3 spaces, 4 staff, historical orders); all idempotent
+- ✅ **Onboarding wizard** — `/manager/:tenant/setup` — 4-step guided setup (restaurant config → spaces → staff → menu); auto-shown on Dashboard when no spaces exist; value proposition copy on each step
+- ✅ **Graduation report** — `documentation/graduation-report.md` — full report: problem, architecture, sprints, decisions, results, roadmap
 
 ---
 
