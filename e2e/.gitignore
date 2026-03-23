@@ -4,5 +4,5 @@ test-results/
 manager-auth.json
 admin-auth.json
 run-state.json
-# Allow empty .env to be tracked (root .gitignore excludes *.env)
-!.env
+# .env is tracked as empty template — ignore local fills
+.env
