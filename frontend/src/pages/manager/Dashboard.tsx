@@ -101,6 +101,16 @@ export function Dashboard() {
           </div>
         )}
 
+        {/* No-orders hint (spaces exist but no orders yet) */}
+        {revenue && revenue.totalRevenue === 0 && topItems.length === 0 && (
+          <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-6 py-5 text-center text-sm text-zinc-500">
+            Vos données apparaîtront ici dès que vous recevrez vos premières commandes.
+            <span className="block mt-1 text-xs text-zinc-400">
+              Partagez le QR code de vos tables avec vos clients pour commencer.
+            </span>
+          </div>
+        )}
+
         {/* Top items */}
         {topItems.length > 0 && (
           <div className="rounded-xl border border-zinc-200 bg-white p-4">

@@ -89,7 +89,7 @@ Manager voit tout depuis le dashboard
 | Frontend | React 19 + Vite + TypeScript | Composants réutilisables, build ultra-rapide |
 | Styling | Tailwind CSS 3 | Utility-first, responsive, support RTL via logical properties |
 | ORM | Entity Framework Core 8 | Migrations, requêtes LINQ typées, transactions |
-| Auth | JWT (Bearer) + BCrypt | Tokens courts (15 min) + PIN BCrypt pour le personnel |
+| Auth | JWT (Bearer) + Argon2id / BCrypt | Tokens courts (15 min) + Argon2id pour les managers, BCrypt PIN pour le personnel |
 | PDF | QuestPDF | Génération in-process, pas de dépendance externe |
 | CI/CD | GitHub Actions | Build, test, déploiement automatique |
 | Cloud | Azure (Free Tier B1) | App Service + Static Web App + PostgreSQL Flexible Server |
@@ -163,7 +163,7 @@ SignalR (WebSocket) donne :
 ### 4.3 Authentification à deux niveaux
 
 ```
-Manager (propriétaire)    → JWT Bearer + refresh cookie
+Manager (propriétaire)    → JWT Bearer + refresh cookie httpOnly  (mot de passe : Argon2id)
 Staff (serveur/cuisine)   → PIN BCrypt (4-8 chiffres)
 ```
 
@@ -260,7 +260,8 @@ Une seule application React sert 7 surfaces différentes :
 | Mesure | Détail |
 |--------|--------|
 | JWT courts (15 min) | Refresh via cookie httpOnly (30 jours) |
-| BCrypt work factor 10 | Hachage PINs et mots de passe |
+| Argon2id (managers) | Hachage mémoire-dur pour les mots de passe — gagnant du Password Hashing Competition |
+| BCrypt work factor 10 (staff) | Hachage des PINs — approprié pour les codes courts |
 | Rate limiting | 10 req/min par IP sur les endpoints auth |
 | FluentValidation | Validation stricte des entrées (email format, PIN 4-8 chiffres, slug regex) |
 | Tenant isolation | `search_path` par requête, impossible d'accéder aux données d'un autre tenant |

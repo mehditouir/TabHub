@@ -15,7 +15,8 @@ export default defineConfig({
     ['html', { open: 'never', outputFolder: 'playwright-report' }],
     ['list'],
   ],
-  globalSetup: './global-setup.ts',
+  globalSetup:    './global-setup.ts',
+  globalTeardown: './global-teardown.ts',
   use: {
     baseURL: process.env.BASE_URL ?? 'https://ashy-grass-0c75bb903.6.azurestaticapps.net',
     trace: 'on-first-retry',

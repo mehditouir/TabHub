@@ -68,6 +68,40 @@ scripts/db-init.sql           — Creates public + tenant schemas, all tables; f
 
 ---
 
+## e2e/
+
+```
+e2e/playwright.config.ts      — Playwright config: sequential workers, globalSetup + globalTeardown, 45s timeout, HTML + list reporters
+e2e/global-setup.ts           — Pre-run: logs in as manager + admin, saves storageState JSON files for reuse in tests
+e2e/global-teardown.ts        — Post-run: deletes all E2E-prefixed spaces/staff/categories via API; non-fatal if it fails
+e2e/helpers/auth.ts           — staffPinLogin helper: navigates to PIN keypad, enters digits, asserts redirect
+e2e/helpers/state.ts          — run-state.json read/write helpers (tableQrToken, tableId, spaceId shared across modules)
+e2e/.env                      — Local credentials (BASE_URL, API_URL, emails, passwords, PINs); gitignored locally
+e2e/tests/01-auth.spec.ts     — T-01–T-06: manager login, route guards, logout
+e2e/tests/02-config.spec.ts   — T-07–T-09: restaurant name, VAT, opening hours config
+e2e/tests/03-spaces.spec.ts   — T-10–T-13: create E2E Terrasse space, QR token, table CRUD
+e2e/tests/04-staff.spec.ts    — T-14–T-18: create E2E Waiter/Kitchen/Cashier/Temp staff, zone assign
+e2e/tests/05-menu.spec.ts     — T-19–T-24: create E2E Boissons category, E2E Café item, E2E Sucre modifier group
+e2e/tests/06-pin-login.spec.ts — T-25–T-28: waiter/kitchen/cashier PIN login and role guard
+e2e/tests/07-customer.spec.ts — T-29–T-37: customer QR menu, cart, modifier selection, order placement, SignalR tracking
+e2e/tests/08-waiter.spec.ts   — T-38–T-45: notification banner, ACK, order advancement, floor plan
+e2e/tests/09-kitchen.spec.ts  — T-46–T-49: kanban columns, timer, status advance, SignalR indicator
+e2e/tests/10-cashier.spec.ts  — T-50–T-52: session close, PDF bill, takeaway order entry
+e2e/tests/11-takeaway.spec.ts — T-53–T-54: live takeaway board via SignalR
+e2e/tests/12-e2e-sim.spec.ts  — T-55–T-56: 5 simultaneous browser contexts, full order lifecycle in parallel
+e2e/tests/13-dashboard.spec.ts — T-57–T-59: KPI cards, revenue chart, QR display
+e2e/tests/14-isolation.spec.ts — T-60–T-61: cross-tenant JWT rejection
+e2e/tests/15-navigation.spec.ts — T-62–T-64: route guards, deep links, 404 page
+e2e/tests/16-pdf.spec.ts      — T-65: PDF bill generation and download
+e2e/tests/17-image.spec.ts    — T-66–T-67: image upload, large image handling
+e2e/tests/18-scheduling.spec.ts — T-68–T-69: active/inactive menu scheduling rules
+e2e/tests/19-multilingual.spec.ts — T-70–T-71: FR/AR/EN language switch, RTL layout
+e2e/tests/20-edge-cases.spec.ts — T-72–T-75: empty cart, unavailable item, invalid QR, 404
+e2e/tests/21-super-admin.spec.ts — T-76–T-83: admin login, tenant CRUD, manager CRUD, assignment
+```
+
+---
+
 ## backend/TabHub.API/
 
 ```
@@ -501,6 +535,7 @@ src/test/mocks/server.ts      — Creates msw setupServer with all handlers
 documentation/sprint-plan.md          — 10-sprint project timeline (2 weeks each, W1–W22, internship graduation project)
 documentation/graduation-report.md    — Full graduation report in French (problem, architecture, sprints, decisions, results, roadmap)
 documentation/graduation-report-en.md — Full graduation report in English (direct translation of the French report)
+documentation/defense-prep.md         — Soutenance preparation: pitchs, anticipated jury Q&A, live demo checklist, key metrics
 documentation/diagrams/README.md — Index of all Mermaid diagrams organized by sprint
 ```
 
