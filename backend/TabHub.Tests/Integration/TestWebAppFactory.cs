@@ -26,11 +26,12 @@ public class TestWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
     public async Task InitializeAsync()
     {
         await _postgres.StartAsync();
-        await SeedDatabaseAsync();
-        // Apply EF migrations (creates managers, refresh_tokens, manager_tenants)
+        // Apply EF migrations first (creates managers, refresh_tokens, manager_tenants)
         using var scope = Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         await db.Database.MigrateAsync();
+        // Then seed platform data and tenant schemas
+        await SeedDatabaseAsync();
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
