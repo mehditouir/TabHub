@@ -1,4 +1,14 @@
 {
+  "routes": [
+    {
+      "route": "/assets/*.js",
+      "headers": { "Content-Type": "text/javascript; charset=utf-8" }
+    },
+    {
+      "route": "/assets/*.css",
+      "headers": { "Content-Type": "text/css; charset=utf-8" }
+    }
+  ],
   "navigationFallback": {
     "rewrite": "/index.html",
     "exclude": ["/assets/*", "/*.webp", "/*.png", "/*.jpg", "/*.svg", "/*.ico"]
@@ -9,9 +19,6 @@
     "Referrer-Policy": "strict-origin-when-cross-origin"
   },
   "mimeTypes": {
-    ".js": "text/javascript",
-    ".mjs": "text/javascript",
-    ".css": "text/css",
     ".json": "application/json",
     ".webp": "image/webp"
   }
