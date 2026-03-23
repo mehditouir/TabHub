@@ -139,7 +139,7 @@ else
 // ─────────────────────────────────────────────────────────────────────────────
 var app = builder.Build();
 
-// ── Auto-migrate + seed on startup ────────────────────────────────────────────
+// ── Auto-migrate on startup (blocking — must complete before app accepts traffic) ──
 var startupLogger = app.Services.GetRequiredService<ILogger<Program>>();
 try
 {
@@ -152,30 +152,38 @@ catch (Exception ex)
     startupLogger.LogError(ex, "Database migration failed on startup");
 }
 
-try
+// ── Seed in the background so startup completes quickly ───────────────────────
+var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
+lifetime.ApplicationStarted.Register(() =>
 {
-    var connStr = builder.Configuration.GetConnectionString("Default")!;
-    var sqlPath = Path.Combine(AppContext.BaseDirectory, "scripts", "db-init.sql");
-    var sql = await File.ReadAllTextAsync(sqlPath);
-    var statements = sql
-        .Split(';')
-        .Select(s => string.Join('\n', s.Split('\n').Where(l => !l.TrimStart().StartsWith("--"))))
-        .Select(s => s.Trim())
-        .Where(s => !string.IsNullOrWhiteSpace(s));
-
-    await using var conn = new NpgsqlConnection(connStr);
-    await conn.OpenAsync();
-    foreach (var stmt in statements)
+    _ = Task.Run(async () =>
     {
-        await using var cmd = new NpgsqlCommand(stmt, conn);
-        await cmd.ExecuteNonQueryAsync();
-    }
-    startupLogger.LogInformation("Database seeded successfully");
-}
-catch (Exception ex)
-{
-    startupLogger.LogError(ex, "Database seeding failed on startup");
-}
+        try
+        {
+            var connStr = builder.Configuration.GetConnectionString("Default")!;
+            var sqlPath = Path.Combine(AppContext.BaseDirectory, "scripts", "db-init.sql");
+            var sql = await File.ReadAllTextAsync(sqlPath);
+            var statements = sql
+                .Split(';')
+                .Select(s => string.Join('\n', s.Split('\n').Where(l => !l.TrimStart().StartsWith("--"))))
+                .Select(s => s.Trim())
+                .Where(s => !string.IsNullOrWhiteSpace(s));
+
+            await using var conn = new NpgsqlConnection(connStr);
+            await conn.OpenAsync();
+            foreach (var stmt in statements)
+            {
+                await using var cmd = new NpgsqlCommand(stmt, conn);
+                await cmd.ExecuteNonQueryAsync();
+            }
+            startupLogger.LogInformation("Database seeded successfully");
+        }
+        catch (Exception ex)
+        {
+            startupLogger.LogError(ex, "Database seeding failed");
+        }
+    });
+});
 
 if (app.Environment.IsDevelopment())
 {
