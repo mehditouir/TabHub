@@ -24,13 +24,14 @@ INSERT INTO public.tenants (slug, schema_name, name)
 VALUES ('restauranttunisia', 'restauranttunisia', 'Restaurant Tunisia')
 ON CONFLICT (slug) DO NOTHING;
 
--- ── Dev manager account ───────────────────────────────────────────────────────
--- mehdi@cafetunisia.com / mehdi123  (Owner of cafetunisia tenant + super admin)
+-- ── Dev manager accounts ──────────────────────────────────────────────────────
+-- mehdi@mehdi.com / mehdi123  (super admin — use at /admin/login)
+-- mehdi@cafetunisia.com / mehdi123  (Owner of cafetunisia tenant)
 
 INSERT INTO public.managers (id, email, password_hash, display_name, is_super_admin, is_active, created_at, updated_at)
 VALUES (
-    '00000000-0000-0000-0000-000000000001',
-    'mehdi@cafetunisia.com',
+    '00000000-0000-0000-0000-000000000002',
+    'mehdi@mehdi.com',
     'v1:yBlvQEuHLrESSCiKbP1bug==:cTBvblA+3YxUuFTvD/40bsEPPmMc7PZ3RACPxYpstMs=',
     'Mehdi',
     true,
@@ -39,6 +40,19 @@ VALUES (
     NOW()
 )
 ON CONFLICT (email) DO UPDATE SET is_super_admin = true;
+
+INSERT INTO public.managers (id, email, password_hash, display_name, is_super_admin, is_active, created_at, updated_at)
+VALUES (
+    '00000000-0000-0000-0000-000000000001',
+    'mehdi@cafetunisia.com',
+    'v1:yBlvQEuHLrESSCiKbP1bug==:cTBvblA+3YxUuFTvD/40bsEPPmMc7PZ3RACPxYpstMs=',
+    'Mehdi',
+    false,
+    true,
+    NOW(),
+    NOW()
+)
+ON CONFLICT (email) DO NOTHING;
 
 INSERT INTO public.manager_tenants (manager_id, tenant_id, role, created_at)
 SELECT
