@@ -64,7 +64,7 @@ module swa 'modules/staticwebapp.bicep' = {
   name: 'deploy-swa'
   params: {
     swaName: swaName
-    location: location
+    location: 'westeurope'   // Static Web Apps not available in francecentral
   }
 }
 
@@ -132,6 +132,7 @@ output apiUrl string = 'https://${appService.outputs.defaultHostname}'
 output swaUrl string = 'https://${swa.outputs.defaultHostname}'
 
 @description('SWA deployment token — add to GitHub secret SWA_DEPLOYMENT_TOKEN after first deploy.')
+@secure()
 output swaDeploymentToken string = swa.outputs.deploymentToken
 
 @description('Key Vault name — useful for adding secrets manually if needed.')
