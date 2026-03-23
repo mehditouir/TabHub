@@ -1,0 +1,59 @@
+name: Deploy Infrastructure
+
+# Run manually or when infra files change on main
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - 'infra/**'
+
+env:
+  RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
+
+jobs:
+  deploy:
+    name: Bicep deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # Create resource group if it doesn't exist
+      - name: Ensure resource group exists
+        run: |
+          az group create \
+            --name "$RESOURCE_GROUP" \
+            --location francecentral \
+            --output none
+
+      # Deploy Bicep — passes secrets as parameters inline (never written to disk)
+      - name: Deploy Bicep
+        id: bicep
+        run: |
+          output=$(az deployment group create \
+            --resource-group "$RESOURCE_GROUP" \
+            --template-file infra/main.bicep \
+            --parameters infra/main.parameters.json \
+            --parameters \
+              dbAdminPassword="${{ secrets.DB_ADMIN_PASSWORD }}" \
+              jwtKey="${{ secrets.JWT_PROD_KEY }}" \
+            --query properties.outputs \
+            --output json)
+          echo "outputs=$output" >> $GITHUB_OUTPUT
+
+      # Print deployment outputs for first-time setup
+      - name: Show outputs
+        run: |
+          echo "=== Deployment Outputs ==="
+          echo '${{ steps.bicep.outputs.outputs }}' | jq .
+          echo ""
+          echo "ACTION REQUIRED after first deploy:"
+          echo "1. Copy swaDeploymentToken.value → add to GitHub secret SWA_DEPLOYMENT_TOKEN"
+          echo "2. Copy apiUrl.value → add to GitHub secret VITE_API_URL"
+          echo "3. Run backend and frontend workflows to deploy the apps"

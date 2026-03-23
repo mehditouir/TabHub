@@ -67,7 +67,7 @@ export const router = createBrowserRouter([
 
   // Staff — full-screen kiosk layout
   {
-    path: '/staff',
+    path: '/staff/:tenant',
     element: <RequireAuth><StaffLayout /></RequireAuth>,
     children: [
       { index: true,      element: <Navigate to="orders" replace /> },
@@ -77,12 +77,11 @@ export const router = createBrowserRouter([
 
   // Manager — sidebar layout
   {
-    path: '/manager',
+    path: '/manager/:tenant',
     element: <RequireAuth><ManagerLayout /></RequireAuth>,
     children: [
-      { index: true,      element: <Navigate to="dashboard" replace /> },
+      { index: true,       element: <Navigate to="dashboard" replace /> },
       { path: 'dashboard', element: <Dashboard /> },
-      // Placeholder routes — pages to be built next
       { path: 'menu',      element: <Menu /> },
       { path: 'spaces',    element: <Spaces /> },
       { path: 'staff',     element: <Staff /> },

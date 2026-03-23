@@ -10,6 +10,7 @@
 CLAUDE.md                     — Project overview: stack, entry points, reference to FILEMAP.md
 FILEMAP.md                    — This file; 1-line description of every source file in the repo
 PROGRESS.md                   — Sprint-by-sprint progress tracker; updated on every feature change
+REGRESSION.md                 — 75 manual test scenarios covering all surfaces end-to-end
 .env.example                  — Template env vars (Postgres + ASP.NET); copy to .env for local dev
 .gitignore                    — Git ignore patterns for backend/frontend build artifacts
 docker-compose.yml            — Starts postgres:15-alpine on port 5432; mounts db-init.sql as entrypoint seed
@@ -17,6 +18,32 @@ global.json                   — Pins .NET SDK to 8.0.416 with latestPatch roll
 nuget.config                  — Clears package sources; points exclusively to nuget.org v3 feed
 TabHub.sln                    — Visual Studio solution file linking TabHub.API and TabHub.Tests
 README.md                     — Project readme
+```
+
+---
+
+## .github/workflows/
+
+```
+.github/workflows/infra.yml      — Deploys Bicep to Azure on push to infra/**; creates resource group if needed; prints outputs on first run
+.github/workflows/backend.yml    — dotnet build (API + Tests) → test (Testcontainers) → publish → zip deploy to App Service; health check smoke test
+.github/workflows/frontend.yml   — npm ci → test → build (VITE_API_URL injected) → deploy to Static Web Apps on push to frontend/**
+```
+
+---
+
+## infra/
+
+```
+infra/main.bicep                  — Orchestrates all Azure resources; derives resource names from namePrefix; outputs apiUrl + swaUrl + swaDeploymentToken
+infra/main.parameters.json        — Parameter file; secrets reference a bootstrap Key Vault (fill SUBSCRIPTION_ID + RESOURCE_GROUP)
+infra/modules/appinsights.bicep   — Log Analytics workspace (PerGB2018, 30-day retention) + Application Insights component
+infra/modules/storage.bicep       — Storage account (Standard_LRS) + public blob container tabhub-images; outputs connection string
+infra/modules/staticwebapp.bicep  — Static Web App free tier; outputs defaultHostname + deploymentToken
+infra/modules/postgres.bicep      — PostgreSQL Flexible Server B1ms v15 + tabhub database + AllowAzureServices firewall rule; outputs FQDN
+infra/modules/appservice.bicep    — App Service Plan B1 Linux + Web App (.NET 8, system-assigned identity, WebSockets on, alwaysOn); outputs principalId
+infra/modules/keyvault.bicep      — Key Vault (RBAC mode) + 3 secrets (db-connection-string, jwt-key, storage-connection-string) + Secrets User role for App Service identity
+infra/modules/appsettings.bicep   — Web App config resource with all app settings + Key Vault references; deployed last (no circular dep)
 ```
 
 ---
@@ -43,8 +70,8 @@ scripts/db-init.sql           — Creates public.tenants, cafetunisia + restaura
 ## backend/TabHub.API/
 
 ```
-TabHub.API.csproj             — .NET 8 Web API project: EF Core, Npgsql, JWT Bearer, Argon2, Swagger
-Program.cs                    — App bootstrap: CORS, JWT, EF Core, SignalR, Swagger, middleware pipeline
+TabHub.API.csproj             — .NET 8 Web API project: EF Core, Npgsql, JWT Bearer, Argon2, Swagger, Application Insights
+Program.cs                    — App bootstrap: CORS, JWT, EF Core, SignalR, Swagger, Application Insights, middleware pipeline
 appsettings.json              — Base config: JWT placeholder key, AllowedHosts
 appsettings.Development.json  — Dev overrides: Postgres connection string, JWT dev key, token expiry timings
 Properties/launchSettings.json — dotnet run profiles: http (port 5195), https
@@ -316,6 +343,7 @@ Integration/WaiterZones/WaiterZonesTests.cs  — Integration tests: add, list, r
 .env.local            — Local dev env override: VITE_API_URL=http://localhost:5195
 eslint.config.js      — ESLint flat config: TypeScript, react-hooks, react-refresh plugins
 index.html            — HTML shell: #root div, PWA meta tags, loads /src/main.tsx
+public/staticwebapp.config.json — Azure Static Web Apps SPA routing fallback + security headers (X-Content-Type-Options, X-Frame-Options)
 package.json          — npm manifest: React 19, Vite 8, Tailwind, SignalR, qrcode, MSW, Vitest
 postcss.config.cjs    — PostCSS config: tailwindcss + autoprefixer plugins
 tailwind.config.ts    — Tailwind config: extends brand color #f97316 (orange-500)

@@ -1,68 +1,63 @@
 # Sprint 9 — GitHub Actions CI/CD Pipeline
 
+Three independent workflows, each triggered by path filters on `main`.
+
 ```mermaid
 flowchart TD
-    PUSH["git push → main branch\n(or PR merge)"]
-
-    PUSH --> TRIGGER["GitHub Actions triggered"]
-
-    TRIGGER --> PARALLEL
-
-    subgraph PARALLEL["Parallel jobs"]
-        direction LR
-
-        subgraph JOB_API["Job: build-api"]
-            A1["Checkout code"]
-            A2["Setup .NET 8 SDK"]
-            A3["dotnet restore\n(nuget.config → nuget.org only)"]
-            A4["dotnet build --no-restore\n-c Release"]
-            A5["dotnet test\n(unit + integration tests)"]
-            A6["dotnet publish -c Release\n-o ./publish/api"]
-            A1 --> A2 --> A3 --> A4 --> A5 --> A6
-        end
-
-        subgraph JOB_WEB["Job: build-web"]
-            W1["Checkout code"]
-            W2["Setup Node 20"]
-            W3["npm ci\n(frontend/)"]
-            W4["npm run build\n(Vite → dist/)"]
-            W5["Upload dist/ artifact"]
-            W1 --> W2 --> W3 --> W4 --> W5
-        end
-
-        subgraph JOB_MOB["Job: build-mobile"]
-            M1["Checkout code"]
-            M2["Setup Node 20 + Java 17"]
-            M3["npm ci\n(mobile/)"]
-            M4["ionic build --prod"]
-            M5["npx cap sync android"]
-            M6["./gradlew assembleRelease\n(sign with keystore secret)"]
-            M7["Upload APK artifact"]
-            M1 --> M2 --> M3 --> M4 --> M5 --> M6 --> M7
-        end
+    subgraph Triggers["Push to main"]
+        T1["infra/** changed"]
+        T2["backend/** changed"]
+        T3["frontend/** changed"]
     end
 
-    PARALLEL --> GATE{All jobs\npassed?}
+    T1 --> WF_I
+    T2 --> WF_B
+    T3 --> WF_F
 
-    GATE -->|No| FAIL["❌ Pipeline failed\nNotify via GitHub\nno deploy"]
-
-    GATE -->|Yes| DEPLOY
-
-    subgraph DEPLOY["Deploy (sequential)"]
-        D1["Deploy API → Azure App Service\n(az webapp deploy)"]
-        D2["Deploy Customer PWA\n→ Azure Static Web Apps"]
-        D3["Deploy Manager Dashboard\n→ Azure Static Web Apps"]
-        D4["Upload APK to\nAzure Blob (releases/)"]
-        D1 --> D2 --> D3 --> D4
+    subgraph WF_I["infra.yml — Deploy Infrastructure"]
+        I1["az login\n(AZURE_CREDENTIALS secret)"]
+        I2["az group create\nrg-tabhub (if not exists)"]
+        I3["az deployment group create\n--template-file infra/main.bicep\n--parameters DB_ADMIN_PASSWORD + JWT_PROD_KEY\n(from GitHub secrets)"]
+        I4["Print outputs:\napiUrl, swaUrl, swaDeploymentToken"]
+        I1 --> I2 --> I3 --> I4
     end
 
-    DEPLOY --> SMOKE["Smoke test\nGET /health → 200 OK"]
-    SMOKE -->|Pass| SUCCESS["✅ Deploy complete\nGitHub deployment status: success"]
-    SMOKE -->|Fail| ROLLBACK["⚠️ Rollback to\nprevious App Service slot\nAlert sent"]
+    subgraph WF_B["backend.yml — Deploy Backend"]
+        B1["dotnet restore TabHub.API"]
+        B2["dotnet build API + Tests\n--configuration Release"]
+        B3["dotnet test TabHub.Tests\n(Testcontainers: real Postgres\nDocker on ubuntu-latest)"]
+        B4["dotnet publish\n--output ./publish"]
+        B5["az login"]
+        B6["azure/webapps-deploy\napp: api-tabhub\npackage: ./publish"]
+        B7["curl /health → 200\n(smoke test)"]
+        B1 --> B2 --> B3 --> B4 --> B5 --> B6 --> B7
+    end
 
-    style PUSH fill:#1B4F72,color:#fff
-    style SUCCESS fill:#D5F5E3,stroke:#1E8449
+    subgraph WF_F["frontend.yml — Deploy Frontend"]
+        F1["npm ci\n(frontend/)"]
+        F2["npm test -- --run\n(Vitest)"]
+        F3["npm run build\nVITE_API_URL injected\nfrom GitHub secret"]
+        F4["azure/static-web-apps-deploy\ntoken: SWA_DEPLOYMENT_TOKEN\napp_location: frontend\noutput_location: dist\nskip_app_build: true"]
+        F1 --> F2 --> F3 --> F4
+    end
+
+    B7 -->|fail| FAIL["❌ Deploy failed\nGitHub status: failure"]
+    B7 -->|pass| OK_B["✅ Backend live\napi-tabhub.azurewebsites.net"]
+    F4 --> OK_F["✅ Frontend live\nweb-tabhub.azurestaticapps.net"]
+
+    style OK_B fill:#D5F5E3,stroke:#1E8449
+    style OK_F fill:#D5F5E3,stroke:#1E8449
     style FAIL fill:#FADBD8,stroke:#CB4335
-    style ROLLBACK fill:#FADBD8,stroke:#CB4335
-    style GATE fill:#FEF9E7,stroke:#D4AC0D
 ```
+
+## GitHub secrets required
+
+| Secret | Used by | Source |
+|---|---|---|
+| `AZURE_CREDENTIALS` | All 3 workflows | `az ad sp create-for-rbac --sdk-auth` |
+| `AZURE_RESOURCE_GROUP` | infra + backend | `rg-tabhub` |
+| `AZURE_APP_SERVICE_NAME` | backend | `api-tabhub` |
+| `DB_ADMIN_PASSWORD` | infra | Strong password (min 8 chars) |
+| `JWT_PROD_KEY` | infra | Random string min 32 chars |
+| `SWA_DEPLOYMENT_TOKEN` | frontend | Output of first infra deploy |
+| `VITE_API_URL` | frontend | `https://api-tabhub.azurewebsites.net` |

@@ -1,0 +1,67 @@
+name: Deploy Backend
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  PROJECT_PATH: backend/TabHub.API/TabHub.API.csproj
+  PUBLISH_DIR: ./publish
+
+jobs:
+  build-and-deploy:
+    name: Build, test & deploy API
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore packages
+        run: dotnet restore ${{ env.PROJECT_PATH }}
+
+      - name: Build
+        run: |
+          dotnet build ${{ env.PROJECT_PATH }} --no-restore --configuration Release
+          dotnet build backend/TabHub.Tests/TabHub.Tests.csproj --no-restore --configuration Release
+
+      # Testcontainers requires Docker — ubuntu-latest has Docker pre-installed
+      - name: Test
+        run: dotnet test backend/TabHub.Tests/TabHub.Tests.csproj --no-build --configuration Release --verbosity normal
+        continue-on-error: false
+
+      - name: Publish
+        run: |
+          dotnet publish ${{ env.PROJECT_PATH }} \
+            --configuration Release \
+            --output ${{ env.PUBLISH_DIR }} \
+            --no-restore
+
+      - name: Log in to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ secrets.AZURE_APP_SERVICE_NAME }}
+          package: ${{ env.PUBLISH_DIR }}
+
+      - name: Verify deployment
+        run: |
+          sleep 15
+          status=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "X-Tenant: cafetunisia" \
+            "https://${{ secrets.AZURE_APP_SERVICE_NAME }}.azurewebsites.net/health")
+          echo "Health check status: $status"
+          [ "$status" = "200" ] || (echo "Health check failed!" && exit 1)

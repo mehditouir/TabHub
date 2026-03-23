@@ -17,7 +17,7 @@
 | 6 | Customer Ordering Interface | ✅ Complete |
 | 7 | Waiter Application | ✅ Complete |
 | 8 | Kitchen, Cashier & Takeaway | ✅ Complete |
-| 9 | Cloud Deployment & CI/CD | ❌ Not started |
+| 9 | Cloud Deployment & CI/CD | 🚧 In Progress |
 | 10 | Hardening & Demo Preparation | ❌ Not started |
 
 ---
@@ -194,9 +194,30 @@ Depends on Sprint 7 completion.
 
 ---
 
-## Sprint 9 — Cloud Deployment & CI/CD ❌ NOT STARTED
+## Sprint 9 — Cloud Deployment & CI/CD 🚧 IN PROGRESS
 
-Planned: Azure App Service, Azure PostgreSQL Flexible Server, Blob Storage + CDN, Key Vault + Managed Identity, Static Web Apps, GitHub Actions pipelines, Application Insights, subdomain routing (`{tenant}.tabhub.tn`), SSL.
+**IaC:** Bicep (not Terraform) — `infra/` folder with modules pattern.
+**Routing:** Path-based (`/manager/:tenant/...`) — no custom domain needed for demo year.
+
+- ✅ `infra/main.bicep` — orchestrates all Azure resources
+- ✅ `infra/main.parameters.json` — parameter file with Key Vault references for secrets
+- ✅ `infra/modules/appinsights.bicep` — Log Analytics workspace + Application Insights
+- ✅ `infra/modules/storage.bicep` — Blob Storage account + `tabhub-images` container
+- ✅ `infra/modules/staticwebapp.bicep` — Static Web Apps (free tier)
+- ✅ `infra/modules/postgres.bicep` — PostgreSQL Flexible Server B1ms + `tabhub` database
+- ✅ `infra/modules/appservice.bicep` — App Service Plan B1 + Web App (system-assigned identity)
+- ✅ `infra/modules/keyvault.bicep` — Key Vault + 3 secrets + RBAC role assignment for App Service identity
+- ✅ `infra/modules/appsettings.bicep` — App Service settings with Key Vault references (deployed last)
+- ✅ `.github/workflows/infra.yml` — deploys Bicep on push to `infra/**`
+- ✅ `.github/workflows/backend.yml` — build + test + zip deploy to App Service on push to `backend/**`
+- ✅ `.github/workflows/frontend.yml` — build + deploy to Static Web Apps on push to `frontend/**`
+- ✅ `frontend/public/staticwebapp.config.json` — SPA routing fallback + security headers
+- ✅ `Microsoft.ApplicationInsights.AspNetCore` SDK added to backend (required for Linux App Service)
+- ✅ `backend.yml` workflow — fixed: both API and Tests projects built before test step
+- ✅ `documentation/diagrams/sprints/sprint9/01-azure-infrastructure.md` — updated to reflect actual architecture (path-based routing, no Front Door, no APK)
+- ✅ `documentation/diagrams/sprints/sprint9/02-cicd-pipeline.md` — updated to reflect actual 3-workflow CI/CD pipeline
+
+**Blocked on:** GitHub secrets from Mehdi (see `infra/PENDING_SETUP.md`)
 
 ---
 

@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { cn } from '@/lib/utils'
@@ -9,22 +9,23 @@ const LANGUAGES = [
   { code: 'en', label: 'EN' },
 ]
 
-const NAV_ITEMS = [
-  { to: '/manager/dashboard', tk: 'nav.dashboard' },
-  { to: '/manager/menu',      tk: 'nav.menu'      },
-  { to: '/manager/spaces',    tk: 'nav.spaces'    },
-  { to: '/manager/staff',     tk: 'nav.staff'     },
-  { to: '/manager/config',    tk: 'nav.config'    },
+const NAV_SLUGS = [
+  { slug: 'dashboard', tk: 'nav.dashboard' },
+  { slug: 'menu',      tk: 'nav.menu'      },
+  { slug: 'spaces',    tk: 'nav.spaces'    },
+  { slug: 'staff',     tk: 'nav.staff'     },
+  { slug: 'config',    tk: 'nav.config'    },
 ]
 
 export function ManagerLayout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const { t, i18n } = useTranslation()
+  const { tenant } = useParams<{ tenant: string }>()
 
   async function handleLogout() {
     await logout()
-    navigate('/login')
+    navigate('/login', { replace: true })
   }
 
   return (
@@ -34,10 +35,10 @@ export function ManagerLayout() {
         <div className="px-4 py-5 text-xl font-bold text-zinc-900">TabHub</div>
 
         <nav className="flex flex-1 flex-col gap-1 px-2">
-          {NAV_ITEMS.map(({ to, tk }) => (
+          {NAV_SLUGS.map(({ slug, tk }) => (
             <NavLink
-              key={to}
-              to={to}
+              key={slug}
+              to={`/manager/${tenant}/${slug}`}
               className={({ isActive }) =>
                 cn('rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                   isActive

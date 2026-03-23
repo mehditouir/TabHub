@@ -28,7 +28,7 @@ export function Login() {
       const token = localStorage.getItem('tabhub_token') ?? ''
       const payload = JSON.parse(atob(token.split('.')[1]))
       const role = payload.role as string
-      navigate(role === 'owner' || role === 'admin' ? '/manager/dashboard' : '/staff/orders')
+      navigate(role === 'owner' || role === 'admin' ? `/manager/${tenant}/dashboard` : `/staff/${tenant}/orders`)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Login failed.')
     } finally {

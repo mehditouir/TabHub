@@ -28,6 +28,9 @@ builder.Services.AddCors(options =>
             .AllowCredentials()); // required for SignalR WebSocket handshake
 });
 
+// ── Application Insights (Linux App Service requires explicit SDK) ─────────────
+builder.Services.AddApplicationInsightsTelemetry();
+
 // ── Controllers ───────────────────────────────────────────────────────────────
 builder.Services.AddControllers(opts => opts.Filters.Add<TenantAuthorizationFilter>());
 
