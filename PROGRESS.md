@@ -219,6 +219,12 @@ Depends on Sprint 7 completion.
 
 **Blocked on:** GitHub secrets from Mehdi (see `infra/PENDING_SETUP.md`)
 
+**Production fixes applied:**
+- ✅ Fix 1 (image upload): `BlobImageStorageService` already implemented; resolves when Key Vault secret is set
+- ✅ Fix 2 (PDF fonts): `appservice.bicep` startup command installs `fonts-liberation libfontconfig1` before starting the app
+- ✅ Fix 3 (Super admin): `POST /admin/auth/login` (no tenant), `GET/POST /admin/tenants`, `GET/POST /admin/managers`, `POST /admin/tenants/{id}/managers`; `/admin` frontend with login + dashboard; mehdi@cafetunisia.com is super admin in seed
+- ✅ Fix 4 (WebSockets / SignalR): `webSocketsEnabled: true` already in Bicep from Sprint 9
+
 ---
 
 ## Sprint 10 — Hardening & Demo Preparation ❌ NOT STARTED

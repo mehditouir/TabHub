@@ -7,8 +7,9 @@ public class TenantMiddleware(RequestDelegate next)
 {
     public async Task InvokeAsync(HttpContext context, AppDbContext db, TenantCache cache)
     {
-        // Health endpoint must be reachable without a tenant (used by deployment verification)
-        if (context.Request.Path.StartsWithSegments("/health"))
+        // Health and admin endpoints are tenant-free
+        if (context.Request.Path.StartsWithSegments("/health") ||
+            context.Request.Path.StartsWithSegments("/admin"))
         {
             await next(context);
             return;

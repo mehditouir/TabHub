@@ -10,12 +10,15 @@ import { TakeawayDisplay }   from '@/pages/TakeawayDisplay'
 import { KitchenApp }        from '@/pages/KitchenApp'
 import { CashierApp }        from '@/pages/CashierApp'
 import { WaiterApp }         from '@/pages/WaiterApp'
-import { StaffOrders }   from '@/pages/staff/Orders'
-import { Dashboard }     from '@/pages/manager/Dashboard'
-import { Menu }          from '@/pages/manager/Menu'
-import { Spaces }        from '@/pages/manager/Spaces'
-import { Staff }         from '@/pages/manager/Staff'
-import { Config }        from '@/pages/manager/Config'
+import { StaffOrders }    from '@/pages/staff/Orders'
+import { Dashboard }      from '@/pages/manager/Dashboard'
+import { Menu }           from '@/pages/manager/Menu'
+import { Spaces }         from '@/pages/manager/Spaces'
+import { Staff }          from '@/pages/manager/Staff'
+import { Config }         from '@/pages/manager/Config'
+import { AdminLogin }     from '@/pages/admin/AdminLogin'
+import { AdminDashboard } from '@/pages/admin/AdminDashboard'
+import { getAdminToken }  from '@/lib/api/admin'
 
 // ── Auth guard ──────────────────────────────────────────────────────────────
 // Simple wrapper: if no token in localStorage, redirect to /login.
@@ -24,6 +27,10 @@ import { Config }        from '@/pages/manager/Config'
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const token = localStorage.getItem('tabhub_token')
   return token ? <>{children}</> : <Navigate to="/login" replace />
+}
+
+function RequireAdminAuth({ children }: { children: React.ReactNode }) {
+  return getAdminToken() ? <>{children}</> : <Navigate to="/admin/login" replace />
 }
 
 // ── Router ──────────────────────────────────────────────────────────────────
@@ -87,6 +94,16 @@ export const router = createBrowserRouter([
       { path: 'staff',     element: <Staff /> },
       { path: 'config',    element: <Config /> },
     ],
+  },
+
+  // Admin
+  {
+    path: '/admin/login',
+    element: <AdminLogin />,
+  },
+  {
+    path: '/admin',
+    element: <RequireAdminAuth><AdminDashboard /></RequireAdminAuth>,
   },
 
   // Catch-all → login

@@ -25,7 +25,7 @@ VALUES ('restauranttunisia', 'restauranttunisia', 'Restaurant Tunisia')
 ON CONFLICT (slug) DO NOTHING;
 
 -- ── Dev manager account ───────────────────────────────────────────────────────
--- mehdi@cafetunisia.com / mehdi123  (Owner of cafetunisia tenant)
+-- mehdi@cafetunisia.com / mehdi123  (Owner of cafetunisia tenant + super admin)
 
 INSERT INTO public.managers (id, email, password_hash, display_name, is_super_admin, is_active, created_at, updated_at)
 VALUES (
@@ -33,12 +33,12 @@ VALUES (
     'mehdi@cafetunisia.com',
     'v1:yBlvQEuHLrESSCiKbP1bug==:cTBvblA+3YxUuFTvD/40bsEPPmMc7PZ3RACPxYpstMs=',
     'Mehdi',
-    false,
+    true,
     true,
     NOW(),
     NOW()
 )
-ON CONFLICT (email) DO NOTHING;
+ON CONFLICT (email) DO UPDATE SET is_super_admin = true;
 
 INSERT INTO public.manager_tenants (manager_id, tenant_id, role, created_at)
 SELECT

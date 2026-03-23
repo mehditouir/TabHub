@@ -90,6 +90,7 @@ Migrations/AppDbContextModelSnapshot.cs                   — Auto-generated EF 
 
 ```
 src/API/Controllers/AuthController.cs        — Manager register/login/refresh/logout; staff PIN login; issues JWT + refresh cookie
+src/API/Controllers/SuperAdminController.cs  — Super admin: POST /admin/auth/login, GET/POST /admin/tenants, GET/POST /admin/managers, POST /admin/tenants/{id}/managers
 src/API/Controllers/CategoriesController.cs  — CRUD for menu categories + per-language translation upsert; manager auth
 src/API/Controllers/ConfigController.cs      — GET/PUT tenant key-value config store; manager auth
 src/API/Controllers/HealthController.cs      — GET /health: pings DB via SELECT 1; returns tenant slug and status
@@ -111,7 +112,7 @@ src/API/Controllers/TenantControllerBase.cs  — Abstract base: [ApiController] 
 ### backend/TabHub.API/src/API/Dtos/
 
 ```
-src/API/Dtos/AuthDtos.cs       — Records: RegisterManagerRequest, LoginRequest, StaffPinLoginRequest, LoginResponse, StaffLoginResponse
+src/API/Dtos/AuthDtos.cs       — Records: RegisterManagerRequest, LoginRequest, StaffPinLoginRequest, LoginResponse, StaffLoginResponse, CreateTenantRequest, AdminCreateManagerRequest, AssignManagerRequest
 src/API/Dtos/CategoryDtos.cs   — Records: CreateCategoryRequest, UpdateCategoryRequest, CategoryDto, CategoryTranslationDto
 src/API/Dtos/ConfigDtos.cs     — Record: SetConfigRequest (single Value string)
 src/API/Dtos/IngredientDtos.cs — Records: CreateIngredientRequest, UpdateIngredientRequest, IngredientDto, IngredientTranslationDto
@@ -196,7 +197,7 @@ src/Infrastructure/Auth/CurrentActorAccessor.cs — Reads actor_type, sub, name,
 src/Infrastructure/Auth/ICurrentActor.cs        — Interface: ActorType, ActorId, ActorDisplay, TenantId
 src/Infrastructure/Auth/JwtSettings.cs          — Config POCO: Key, Issuer, Audience, AccessTokenMinutes, RefreshTokenDays
 src/Infrastructure/Auth/PinHasher.cs            — BCrypt hasher (work factor 10) for staff PINs
-src/Infrastructure/Auth/TokenService.cs         — Generates manager/staff JWTs (HS256) and SHA256-hashed refresh tokens
+src/Infrastructure/Auth/TokenService.cs         — Generates manager/staff/superadmin JWTs (HS256) and SHA256-hashed refresh tokens
 ```
 
 ### backend/TabHub.API/src/Infrastructure/Multitenancy/
@@ -204,7 +205,7 @@ src/Infrastructure/Auth/TokenService.cs         — Generates manager/staff JWTs
 ```
 src/Infrastructure/Multitenancy/TenantCache.cs      — IMemoryCache wrapper; caches TenantContext by slug for 5 minutes
 src/Infrastructure/Multitenancy/TenantContext.cs    — Immutable record carrying TenantId, Slug, SchemaName for the request
-src/Infrastructure/Multitenancy/TenantMiddleware.cs — Resolves X-Tenant from header or query param (SignalR) → TenantContext; opens DB connection; sets search_path
+src/Infrastructure/Multitenancy/TenantMiddleware.cs — Resolves X-Tenant from header or query param (SignalR) → TenantContext; opens DB connection; sets search_path; bypasses /health and /admin
 ```
 
 ### backend/TabHub.API/src/Infrastructure/Persistence/
@@ -361,7 +362,7 @@ src/App.css     — App-level CSS (minimal; Tailwind handles styling)
 src/App.tsx     — Root component: renders RouterProvider with the app router
 src/index.css   — Global CSS: Tailwind directives, body margin reset, #root fills viewport
 src/main.tsx    — React entry point: mounts App in StrictMode to #root; imports i18n setup
-src/router.tsx  — All routes: /menu/:tenant, /login, /staff/*, /manager/* (dashboard/menu/spaces/staff/config); RequireAuth guard
+src/router.tsx  — All routes: /menu/:tenant, /login, /staff/*, /manager/* (dashboard/menu/spaces/staff/config), /admin/login, /admin; RequireAuth + RequireAdminAuth guards
 ```
 
 ### frontend/src/i18n/
@@ -409,6 +410,7 @@ src/components/ui/Input.test.tsx  — Tests: label renders, error styling, attri
 ### frontend/src/lib/api/
 
 ```
+src/lib/api/admin.ts       — adminLogin, getTenants, createTenant, getManagers, createManager, assignManager; saveAdminToken/clearAdminToken/getAdminToken
 src/lib/api/auth.ts        — login(manager), logout, staffPinLogin(tenant, pin) — manager + staff PIN auth
 src/lib/api/client.ts      — apiFetch<T>(): attaches JWT + X-Tenant headers; throws ApiError on non-2xx; hubUrl(); customerHubUrl(tenant, tableId?)
 src/lib/api/client.test.ts — Tests: correct headers sent, ApiError thrown on 4xx/5xx, 204 returns undefined
@@ -450,6 +452,8 @@ src/pages/KitchenApp.tsx         — Kitchen display (/kitchen/:tenant): PIN log
 src/pages/CashierApp.tsx         — Cashier kiosk (/cashier/:tenant): PIN login (cashier role), New Order tab (takeaway/table + item picker + cart), Sessions tab (close session + PDF bill)
 src/pages/WaiterApp.tsx          — Waiter tablet app (/waiter/:tenant): PIN login (waiter role), floor plan grid with zone highlighting, orders tab with advance/cancel, sessions tab (move/merge/close+bill), place order modal, notification banner with ACK
 src/pages/Login.tsx              — Login form: tenant slug + email + password; redirects by role after JWT decode
+src/pages/admin/AdminLogin.tsx   — Super admin login (no tenant); stores token in tabhub_admin_token; redirects to /admin
+src/pages/admin/AdminDashboard.tsx — Admin dashboard: Tenants tab (list + create), Managers tab (list + create + assign to tenant)
 src/pages/Login.test.tsx         — Tests: form submission, error display, role-based redirect
 ```
 

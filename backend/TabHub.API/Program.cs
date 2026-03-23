@@ -118,6 +118,8 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("OwnerOnly", p => p.RequireAuthenticatedUser()
         .RequireClaim("actor_type", "manager")
         .RequireRole("owner"));
+    options.AddPolicy("SuperAdminOnly", p => p.RequireAuthenticatedUser()
+        .RequireClaim("actor_type", "superadmin"));
 });
 
 // ── Auth infrastructure ───────────────────────────────────────────────────────

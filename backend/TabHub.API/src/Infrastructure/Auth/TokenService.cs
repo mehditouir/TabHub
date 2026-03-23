@@ -29,6 +29,21 @@ public class TokenService(IOptions<JwtSettings> options)
         return BuildToken(claims, TimeSpan.FromMinutes(_jwt.AccessTokenMinutes));
     }
 
+    public string GenerateSuperAdminAccessToken(Manager manager)
+    {
+        var claims = new[]
+        {
+            new Claim(JwtRegisteredClaimNames.Sub,   manager.Id.ToString()),
+            new Claim(JwtRegisteredClaimNames.Email, manager.Email),
+            new Claim(JwtRegisteredClaimNames.Jti,   Guid.NewGuid().ToString()),
+            new Claim("name",       manager.DisplayName),
+            new Claim("actor_type", "superadmin"),
+            new Claim("role",       "superadmin"),
+        };
+
+        return BuildToken(claims, TimeSpan.FromMinutes(_jwt.AccessTokenMinutes));
+    }
+
     public string GenerateStaffAccessToken(Staff staff, Guid tenantId)
     {
         var claims = new[]
