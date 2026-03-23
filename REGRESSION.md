@@ -16,6 +16,7 @@ Each scenario is self-contained. Scenarios that depend on prior state say so exp
 
 | Role | Tenant | Email / PIN | Password |
 |---|---|---|---|
+| **Super Admin** | *(none)* | `mehdi@mehdi.com` | `mehdi123` |
 | Manager | `cafetunisia` | `mehdi@cafetunisia.com` | `mehdi123` |
 | Waiter | `cafetunisia` | PIN `5678` | *(created in T-14/T-16)* |
 | Kitchen | `cafetunisia` | PIN `2222` | *(created in T-15)* |
@@ -23,6 +24,7 @@ Each scenario is self-contained. Scenarios that depend on prior state say so exp
 
 > **Tip:** Run tests in order on first pass — later modules depend on data created in earlier ones.
 > For Swagger calls, always set header `X-Tenant: cafetunisia` in the **Authorize** dialog.
+> Super admin login is at `/admin/login` — no tenant slug required.
 
 ---
 
@@ -912,6 +914,7 @@ Navigate to each of the following and verify the correct screen loads (no 404, n
 | `/cashier/cafetunisia` | PIN keypad for cashier |
 | `/takeaway/cafetunisia` | Public takeaway board |
 | `/menu/cafetunisia` | Public menu (may show error without valid `?table=` param) |
+| `/admin/login` | Super admin login page (no tenant field) |
 
 ---
 
@@ -1056,6 +1059,120 @@ Navigate to each of the following and verify the correct screen loads (no 404, n
 
 ---
 
+## Module 21 — Super Admin Interface
+
+### T-76 — Super admin login
+**Steps:**
+1. Go to `https://ashy-grass-0c75bb903.6.azurestaticapps.net/admin/login`
+2. Enter email: `mehdi@mehdi.com`, password: `mehdi123`
+3. Click **Sign in**
+
+**Expected:**
+- Redirected to `/admin`
+- Dashboard shows two tabs: **Tenants** and **Managers**
+- No tenant slug was required during login
+
+---
+
+### T-77 — Super admin auth guard blocks unauthenticated access
+**Steps:**
+1. Open a private/incognito browser window
+2. Navigate directly to `https://ashy-grass-0c75bb903.6.azurestaticapps.net/admin`
+
+**Expected:**
+- Redirected to `/admin/login`
+- Dashboard is not visible
+
+---
+
+### T-78 — Wrong credentials rejected on admin login
+**Steps:**
+1. Go to `/admin/login`
+2. Enter email: `mehdi@mehdi.com`, password: `wrongpassword`
+3. Click **Sign in**
+
+**Expected:**
+- Error message appears ("Invalid credentials" or similar)
+- Stays on `/admin/login` — no redirect
+
+---
+
+### T-79 — Regular manager cannot log in as super admin
+**Steps:**
+1. Go to `/admin/login`
+2. Enter email: `mehdi@cafetunisia.com`, password: `mehdi123`
+3. Click **Sign in**
+
+**Expected:**
+- Error message: "Invalid credentials"
+- Login rejected (this account has `is_super_admin = false`)
+
+---
+
+### T-80 — Tenants tab lists existing tenants
+**Preconditions:** T-76 complete (logged in as super admin)
+
+**Steps:**
+1. On the admin dashboard, click the **Tenants** tab
+
+**Expected:**
+- `cafetunisia` and `restauranttunisia` both appear in the list
+- Each tenant shows its slug, schema name, and manager count
+
+---
+
+### T-81 — Create a new tenant
+**Preconditions:** T-76 complete
+
+**Steps:**
+1. On the **Tenants** tab, fill in the **New Tenant** form:
+   - Slug: `testcafe`
+   - Display name: `Test Café`
+2. Click **Create tenant**
+
+**Expected:**
+- Success message appears: "Tenant "testcafe" created."
+- `testcafe` appears in the tenant list
+- Schema was provisioned — log in at `/login` with tenant `testcafe` returns a valid (empty) response (not 404)
+
+---
+
+### T-82 — Create a new manager and assign to tenant
+**Preconditions:** T-81 complete (`testcafe` tenant exists)
+
+**Steps:**
+1. Click the **Managers** tab
+2. Fill in the **New Manager** form:
+   - Display name: `Test Manager`
+   - Email: `manager@testcafe.com`
+   - Initial password: `test1234`
+   - Assign to tenant: select `testcafe` from the dropdown
+3. Click **Create manager**
+
+**Expected:**
+- Success message: "Manager "manager@testcafe.com" created."
+- Manager appears in the list with `testcafe (owner)` badge
+- Can log in at `/login` with tenant: `testcafe`, email: `manager@testcafe.com`, password: `test1234` → redirected to `/manager/testcafe/dashboard`
+
+---
+
+### T-83 — Assign existing manager to a second tenant
+**Preconditions:** T-82 complete (`manager@testcafe.com` exists), T-81 complete (`testcafe` exists)
+
+**Steps:**
+1. On the **Managers** tab, fill in the **Assign Manager to Tenant** form:
+   - Manager: select `Test Manager (manager@testcafe.com)` from the dropdown
+   - Tenant: select `Cafe Tunisia (cafetunisia)`
+   - Role: `Admin`
+2. Click **Assign**
+
+**Expected:**
+- Success message: "Manager assigned."
+- Manager now shows two tenant badges: `testcafe (owner)` and `cafetunisia (admin)`
+- Can log in at `/login` with tenant: `cafetunisia`, email: `manager@testcafe.com`, password: `test1234` → access granted
+
+---
+
 ## Checklist Summary
 
 Use this as a quick reference to track what you've verified:
@@ -1137,3 +1254,11 @@ Use this as a quick reference to track what you've verified:
 | T-73 | Edge cases | Unavailable item cannot be added | |
 | T-74 | Edge cases | Invalid QR token shows error | |
 | T-75 | Edge cases | Unknown route redirects to login | |
+| T-76 | Super Admin | Super admin login | |
+| T-77 | Super Admin | Auth guard blocks unauthenticated access | |
+| T-78 | Super Admin | Wrong credentials rejected | |
+| T-79 | Super Admin | Regular manager cannot log in as super admin | |
+| T-80 | Super Admin | Tenants tab lists existing tenants | |
+| T-81 | Super Admin | Create a new tenant | |
+| T-82 | Super Admin | Create a new manager and assign to tenant | |
+| T-83 | Super Admin | Assign existing manager to a second tenant | |
