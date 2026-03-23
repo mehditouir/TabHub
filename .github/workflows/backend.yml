@@ -55,9 +55,12 @@ jobs:
 
       - name: Verify deployment
         run: |
-          sleep 15
-          status=$(curl -s -o /dev/null -w "%{http_code}" \
-            -H "X-Tenant: cafetunisia" \
-            "https://${{ secrets.AZURE_APP_SERVICE_NAME }}.azurewebsites.net/health")
-          echo "Health check status: $status"
-          [ "$status" = "200" ] || (echo "Health check failed!" && exit 1)
+          for i in $(seq 1 10); do
+            sleep 15
+            status=$(curl -s -o /dev/null -w "%{http_code}" \
+              -H "X-Tenant: cafetunisia" \
+              "https://${{ secrets.AZURE_APP_SERVICE_NAME }}.azurewebsites.net/health")
+            echo "Health check attempt $i: $status"
+            [ "$status" = "200" ] && exit 0
+          done
+          echo "Health check failed after 150s" && exit 1
