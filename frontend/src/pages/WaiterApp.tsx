@@ -477,7 +477,6 @@ function WaiterOrderCard({ order, onUpdated }: { order: Order; onUpdated: (o: Or
 // ── Sessions Tab ──────────────────────────────────────────────────────────────
 
 function SessionsTab() {
-  const { user } = useWaiter()
   const [sessions,  setSessions]  = useState<Session[]>([])
   const [tables,    setTables]    = useState<Table[]>([])
   const [loading,   setLoading]   = useState(true)

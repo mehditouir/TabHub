@@ -5,9 +5,11 @@ import { StaffOrders } from './Orders'
 
 const mockRefresh = vi.fn()
 const mockOrderHub = {
-  orders:    [FIXTURES.order, FIXTURES.orderInProgress] as typeof FIXTURES.order[],
-  connected: true,
-  refresh:   mockRefresh,
+  orders:              [FIXTURES.order, FIXTURES.orderInProgress] as typeof FIXTURES.order[],
+  notifications:       [] as never[],
+  connected:           true,
+  refresh:             mockRefresh,
+  dismissNotification: vi.fn(),
 }
 
 // Mock useOrderHub — avoids needing a real SignalR server in tests
@@ -21,9 +23,11 @@ import { useOrderHub } from '@/lib/hooks/useOrderHub'
 describe('StaffOrders', () => {
   beforeEach(() => {
     vi.mocked(useOrderHub).mockReturnValue({
-      orders:    [FIXTURES.order, FIXTURES.orderInProgress],
-      connected: true,
-      refresh:   mockRefresh,
+      orders:              [FIXTURES.order, FIXTURES.orderInProgress],
+      notifications:       [],
+      connected:           true,
+      refresh:             mockRefresh,
+      dismissNotification: vi.fn(),
     })
   })
 
@@ -51,13 +55,13 @@ describe('StaffOrders', () => {
   })
 
   it('shows disconnected state', () => {
-    vi.mocked(useOrderHub).mockReturnValueOnce({ orders: [], connected: false, refresh: vi.fn() })
+    vi.mocked(useOrderHub).mockReturnValueOnce({ orders: [], notifications: [], connected: false, refresh: vi.fn(), dismissNotification: vi.fn() })
     render(<StaffOrders />)
     expect(screen.getByText('Reconnecting…')).toBeInTheDocument()
   })
 
   it('shows empty state message when no orders', () => {
-    vi.mocked(useOrderHub).mockReturnValueOnce({ orders: [], connected: true, refresh: vi.fn() })
+    vi.mocked(useOrderHub).mockReturnValueOnce({ orders: [], notifications: [], connected: true, refresh: vi.fn(), dismissNotification: vi.fn() })
     render(<StaffOrders />)
     expect(screen.getByText('No orders.')).toBeInTheDocument()
   })

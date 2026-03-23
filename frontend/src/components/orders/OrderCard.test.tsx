@@ -1,12 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { http, HttpResponse } from 'msw'
-import { server } from '@/test/mocks/server'
 import { FIXTURES } from '@/test/mocks/fixtures'
 import { OrderCard } from './OrderCard'
-
-const BASE = 'http://localhost:5000'
 
 describe('OrderCard', () => {
   const mockOnUpdated   = vi.fn()

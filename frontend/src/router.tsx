@@ -96,13 +96,3 @@ export const router = createBrowserRouter([
   },
 ])
 
-function ComingSoon({ title }: { title: string }) {
-  return (
-    <div className="flex h-full items-center justify-center text-zinc-400">
-      <div className="text-center">
-        <p className="text-4xl">🚧</p>
-        <p className="mt-2 font-medium">{title} — coming next sprint</p>
-      </div>
-    </div>
-  )
-}

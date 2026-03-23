@@ -2,14 +2,16 @@ import type { Order, PublicMenuResponse, OrderSummary, TopItem, RevenueReport } 
 
 export const FIXTURES = {
   order: {
-    id:          'order-1',
-    tableId:     'table-1',
-    tableNumber: '5',
-    status:      'Pending',
-    notes:       null,
-    total:       12.500,
-    createdAt:   '2026-01-15T10:30:00Z',
-    updatedAt:   '2026-01-15T10:30:00Z',
+    id:             'order-1',
+    tableId:        'table-1',
+    tableNumber:    '5',
+    orderType:      'DineIn',
+    sequenceNumber: null,
+    status:         'Pending',
+    notes:          null,
+    total:          12.500,
+    createdAt:      '2026-01-15T10:30:00Z',
+    updatedAt:      '2026-01-15T10:30:00Z',
     items: [
       {
         id:           'item-1',
@@ -31,14 +33,16 @@ export const FIXTURES = {
   } satisfies Order,
 
   orderInProgress: {
-    id:          'order-2',
-    tableId:     'table-2',
-    tableNumber: '3',
-    status:      'InProgress',
-    notes:       null,
-    total:       4.500,
-    createdAt:   '2026-01-15T11:00:00Z',
-    updatedAt:   '2026-01-15T11:05:00Z',
+    id:             'order-2',
+    tableId:        'table-2',
+    tableNumber:    '3',
+    orderType:      'DineIn',
+    sequenceNumber: null,
+    status:         'InProgress',
+    notes:          null,
+    total:          4.500,
+    createdAt:      '2026-01-15T11:00:00Z',
+    updatedAt:      '2026-01-15T11:05:00Z',
     items: [
       {
         id:           'item-3',
@@ -52,14 +56,16 @@ export const FIXTURES = {
   } satisfies Order,
 
   orderCompleted: {
-    id:          'order-3',
-    tableId:     'table-1',
-    tableNumber: '5',
-    status:      'Completed',
-    notes:       null,
-    total:       4.500,
-    createdAt:   '2026-01-15T09:00:00Z',
-    updatedAt:   '2026-01-15T09:20:00Z',
+    id:             'order-3',
+    tableId:        'table-1',
+    tableNumber:    '5',
+    orderType:      'DineIn',
+    sequenceNumber: null,
+    status:         'Completed',
+    notes:          null,
+    total:          4.500,
+    createdAt:      '2026-01-15T09:00:00Z',
+    updatedAt:      '2026-01-15T09:20:00Z',
     items: [
       {
         id:           'item-4',
