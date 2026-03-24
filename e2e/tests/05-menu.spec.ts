@@ -117,7 +117,7 @@ test.describe.serial('Module 5 — Menu System', () => {
       }
     }
 
-    await page.getByRole('button', { name: /save|enregistrer/i }).click()
+    await dialog.getByRole('button', { name: /^save$/i }).first().click()
     await page.waitForTimeout(500)
   })
 

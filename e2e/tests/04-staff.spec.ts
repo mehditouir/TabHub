@@ -74,7 +74,7 @@ test.describe.serial('Module 4 — Staff Management', () => {
     await nameInput.fill('E2E Ben Waiter')
     await page.getByRole('button', { name: /save|enregistrer/i }).click()
 
-    await expect(page.getByText('E2E Ben Waiter')).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText('E2E Ben Waiter').first()).toBeVisible({ timeout: 5000 })
   })
 
   test('T-17 — Assign waiter zone', async ({ page }) => {
