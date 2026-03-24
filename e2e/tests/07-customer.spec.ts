@@ -6,10 +6,14 @@
  * Falls back to getting QR token via the manager UI if state file is missing.
  */
 
+import * as fs   from 'fs'
+import * as path from 'path'
 import { test, expect, Page } from '@playwright/test'
-import { readState }           from '../helpers/state'
+import { readState, writeState } from '../helpers/state'
 
-const TENANT = process.env.MANAGER_TENANT ?? 'cafetunisia'
+const TENANT   = process.env.MANAGER_TENANT ?? 'cafetunisia'
+const BASE_URL = process.env.BASE_URL        ?? 'https://ashy-grass-0c75bb903.6.azurestaticapps.net'
+const API_URL  = process.env.API_URL         ?? 'https://api-tabhub.azurewebsites.net'
 
 // Customer menu is public — no auth needed
 test.use({ storageState: { cookies: [], origins: [] } })
@@ -21,15 +25,49 @@ let orderId = ''
 test.beforeAll(async ({ browser }) => {
   const state = readState()
   if (state.tableQrToken) {
-    menuUrl = `${process.env.BASE_URL ?? 'https://ashy-grass-0c75bb903.6.azurestaticapps.net'}/menu/${TENANT}?table=${state.tableQrToken}`
-  } else {
-    // Fallback: get QR token via manager UI
-    const page = await browser.newPage()
-    await page.context().addInitScript(() => {}) // no-op
-    // We try to get the QR token by using manager auth from storageState
-    // This is a best-effort fallback
-    menuUrl = `${process.env.BASE_URL ?? 'https://ashy-grass-0c75bb903.6.azurestaticapps.net'}/menu/${TENANT}`
-    await page.close()
+    menuUrl = `${BASE_URL}/menu/${TENANT}?table=${state.tableQrToken}`
+    return
+  }
+
+  // Fallback: use Playwright browser request context (works where Node.js fetch fails due to proxy)
+  // Read manager token directly from the auth file
+  let managerToken = ''
+  try {
+    const authPath = path.join(__dirname, '..', 'manager-auth.json')
+    const auth = JSON.parse(fs.readFileSync(authPath, 'utf-8'))
+    managerToken = (auth.origins?.[0]?.localStorage as Array<{ name: string; value: string }> | undefined)
+      ?.find(x => x.name === 'tabhub_token')?.value ?? ''
+  } catch { /* auth file not found */ }
+
+  if (!managerToken) {
+    menuUrl = `${BASE_URL}/menu/${TENANT}`
+    return
+  }
+
+  const ctx = await browser.newContext()
+  try {
+    const headers = { Authorization: `Bearer ${managerToken}`, 'X-Tenant': TENANT }
+
+    const spacesRes = await ctx.request.get(`${API_URL}/spaces`, { headers })
+    if (!spacesRes.ok()) throw new Error(`GET /spaces returned ${spacesRes.status()}`)
+    const spaces = await spacesRes.json() as Array<{ id: string; name: string }>
+    const e2eSpace = spaces.find(s => s.name.startsWith('E2E'))
+    if (!e2eSpace) throw new Error('No E2E space found in spaces list')
+
+    const tablesRes = await ctx.request.get(`${API_URL}/tables?spaceId=${e2eSpace.id}`, { headers })
+    if (!tablesRes.ok()) throw new Error(`GET /tables returned ${tablesRes.status()}`)
+    const tables = await tablesRes.json() as Array<{ qrToken: string }>
+    if (tables.length === 0) throw new Error('No tables in E2E space yet')
+
+    const qrToken = tables[0].qrToken
+    writeState({ tableQrToken: qrToken })
+    menuUrl = `${BASE_URL}/menu/${TENANT}?table=${qrToken}`
+    console.log('[beforeAll] Retrieved qrToken via browser request:', qrToken)
+  } catch (err) {
+    console.warn('[beforeAll] QR token fetch failed — T-33..T-37 will skip:', (err as Error).message)
+    menuUrl = `${BASE_URL}/menu/${TENANT}`
+  } finally {
+    await ctx.close()
   }
 })
 

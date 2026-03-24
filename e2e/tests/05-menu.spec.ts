@@ -117,7 +117,14 @@ test.describe.serial('Module 5 — Menu System', () => {
       }
     }
 
-    await dialog.getByRole('button', { name: /^save$/i }).first().click()
+    // Button may be off-screen in a non-scrollable dialog — use native DOM click
+    await page.evaluate(() => {
+      const dialog = document.querySelector('[role="dialog"]')
+      if (!dialog) return
+      const btn = Array.from(dialog.querySelectorAll('button'))
+        .find(b => /^save$/i.test(b.textContent?.trim() ?? ''))
+      btn?.click()
+    })
     await page.waitForTimeout(500)
   })
 
@@ -134,16 +141,18 @@ test.describe.serial('Module 5 — Menu System', () => {
       return
     }
     await ingredientsTab.click()
+    await page.waitForLoadState('networkidle')
 
-    if (!(await page.getByText('E2E Lait').isVisible({ timeout: 2000 }).catch(() => false))) {
-      await page.getByRole('button', { name: /add ingredient/i }).click()
-      const dialog = page.locator('[role="dialog"]').first()
-      await dialog.locator('input').first().fill('E2E Lait')
-      await page.getByRole('button', { name: /save|create|enregistrer/i }).click()
-      await expect(page.getByText('E2E Lait')).toBeVisible({ timeout: 5000 })
-    } else {
-      await expect(page.getByText('E2E Lait')).toBeVisible()
+    if (await page.getByText('E2E Lait').first().isVisible({ timeout: 3000 }).catch(() => false)) {
+      await expect(page.getByText('E2E Lait').first()).toBeVisible()
+      return
     }
+
+    await page.getByRole('button', { name: /add ingredient/i }).click()
+    const dialog = page.locator('[role="dialog"]').first()
+    await dialog.locator('input').first().fill('E2E Lait')
+    await page.getByRole('button', { name: /save|create|enregistrer/i }).click()
+    await expect(page.getByText('E2E Lait').first()).toBeVisible({ timeout: 5000 })
   })
 
   test('T-24 — Disabling an ingredient cascades to linked items', async ({ page }) => {

@@ -37,7 +37,7 @@ test.describe.serial('Module 3 — Spaces & Tables', () => {
       await numInputs.first().fill('4')
       await numInputs.nth(1).fill('3')
     }
-    await page.getByRole('button', { name: /save|create|enregistrer/i }).click()
+    await dialog.getByRole('button', { name: /save|create|enregistrer/i }).click()
 
     await expect(page.getByText(SPACE_NAME, { exact: true }).first()).toBeVisible({ timeout: 5000 })
   })
@@ -47,9 +47,15 @@ test.describe.serial('Module 3 — Spaces & Tables', () => {
     await page.waitForLoadState('networkidle')
     await page.getByTestId('tab-editor').click()
 
-    // Select E2E Terrasse space
+    // Select E2E Terrasse space.
+    // If it's already auto-selected (first in list) no new /tables request fires — use short timeout
+    const tablesLoaded = page.waitForResponse(
+      resp => resp.url().includes('/tables') && resp.status() === 200,
+      { timeout: 3000 },
+    ).catch(() => {})  // OK — space was already selected, tables already loaded
     await page.getByText(SPACE_NAME, { exact: true }).first().click()
-    await page.waitForLoadState('networkidle')
+    await tablesLoaded
+    await page.waitForTimeout(500)  // Let React apply any in-flight state update
 
     // Click empty cells (+ buttons) to add tables
     const plusCells = page.getByRole('button', { name: '+' })
@@ -61,7 +67,7 @@ test.describe.serial('Module 3 — Spaces & Tables', () => {
       const dialog = page.locator('[role="dialog"]').first()
       if (await dialog.isVisible({ timeout: 2000 }).catch(() => false)) {
         await dialog.locator('input').first().fill('T1')
-        await page.getByRole('button', { name: /save|enregistrer/i }).click()
+        await dialog.getByRole('button', { name: /save|enregistrer/i }).click()
         await page.waitForTimeout(500)
       }
 
@@ -72,7 +78,7 @@ test.describe.serial('Module 3 — Spaces & Tables', () => {
         const dialog2 = page.locator('[role="dialog"]').first()
         if (await dialog2.isVisible({ timeout: 2000 }).catch(() => false)) {
           await dialog2.locator('input').first().fill('T2')
-          await page.getByRole('button', { name: /save|enregistrer/i }).click()
+          await dialog2.getByRole('button', { name: /save|enregistrer/i }).click()
           await page.waitForTimeout(500)
         }
       }
@@ -85,8 +91,14 @@ test.describe.serial('Module 3 — Spaces & Tables', () => {
     await page.goto(`/manager/${TENANT}/spaces`)
     await page.waitForLoadState('networkidle')
     await page.getByTestId('tab-editor').click()
+
+    const tablesLoaded = page.waitForResponse(
+      resp => resp.url().includes('/tables') && resp.status() === 200,
+      { timeout: 3000 },
+    ).catch(() => {})
     await page.getByText(SPACE_NAME, { exact: true }).first().click()
-    await page.waitForLoadState('networkidle')
+    await tablesLoaded
+    await page.waitForTimeout(500)
 
     // Click the first occupied table cell
     const occupiedCell = page.locator('button[title*="Table"]').first()

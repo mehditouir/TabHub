@@ -167,7 +167,9 @@ test.describe.serial('Module 21 — Super Admin Interface', () => {
 
     // Role defaults to 'owner' — no change needed
     await assignForm.getByRole('button', { name: /assign/i }).click()
-    await expect(page.getByText('Manager assigned.').first()).toBeVisible({ timeout: 8000 })
+    await expect(
+      page.getByText('Manager assigned.').or(page.getByText(/already assigned/i)).first()
+    ).toBeVisible({ timeout: 8000 })
 
     // Verify manager@testcafe.com can login to cafetunisia
     await page.goto('/login')

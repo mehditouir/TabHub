@@ -26,7 +26,7 @@ test.describe.serial('Module 14 — Tenant Isolation', () => {
     }
 
     // Verify cross-tenant isolation via direct API call (best-effort — API may be unreachable)
-    const apiUrl = process.env.API_URL ?? 'https://tabhub-api-caguf5bkb7b9bzca.francecentral-01.azurewebsites.net'
+    const apiUrl = process.env.API_URL ?? 'https://api-tabhub.azurewebsites.net'
     try {
       const res = await page.request.get(`${apiUrl}/menu`, {
         headers: {
@@ -54,7 +54,7 @@ test.describe.serial('Module 14 — Tenant Isolation', () => {
     expect(token).toBeTruthy()
 
     // Use cafetunisia JWT against restauranttunisia — should get 401 or 403 (best-effort)
-    const apiUrl = process.env.API_URL ?? 'https://tabhub-api-caguf5bkb7b9bzca.francecentral-01.azurewebsites.net'
+    const apiUrl = process.env.API_URL ?? 'https://api-tabhub.azurewebsites.net'
     try {
       const res = await page.request.get(`${apiUrl}/spaces`, {
         headers: {

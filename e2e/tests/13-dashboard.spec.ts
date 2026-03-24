@@ -44,8 +44,14 @@ test.describe.serial('Module 13 — Manager Dashboard & Reports', () => {
     // Click first space in the list — use role+name to avoid matching "+ Nouvel espace"
     const firstSpace = page.getByRole('button', { name: /terrasse|salle/i }).first()
     await expect(firstSpace).toBeVisible({ timeout: 5000 })
+
+    const tablesLoaded = page.waitForResponse(
+      resp => resp.url().includes('/tables') && resp.status() === 200,
+      { timeout: 3000 },
+    ).catch(() => {})
     await firstSpace.click()
-    await page.waitForLoadState('networkidle')
+    await tablesLoaded
+    await page.waitForTimeout(500)
 
     // Click the first occupied table cell (title contains "Table")
     const occupiedCell = page.locator('button[title*="Table"]').first()

@@ -68,15 +68,19 @@ test.describe.serial('Module 12 — Full End-to-End Simulation', () => {
     const addBtn = customerPage.getByRole('button', { name: /add|\+/i }).first()
     if (await addBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
       await addBtn.click()
-      const modal = customerPage.locator('[role="dialog"]').first()
-      if (await modal.isVisible({ timeout: 1000 }).catch(() => false)) {
-        await modal.locator('button, label').first().click()
-        await modal.getByRole('button', { name: /confirm|ok/i }).click().catch(() => {})
+      await customerPage.waitForTimeout(500)
+      // Modifier modal may not have role="dialog" — detect by presence of "Add to cart" button
+      const addToCartBtn = customerPage.getByRole('button', { name: /add to cart|ajouter au panier/i }).first()
+      if (await addToCartBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+        // Select first modifier option (label) before confirming
+        await customerPage.locator('label').filter({ hasText: /.+/ }).first().click().catch(() => {})
+        await addToCartBtn.click().catch(() => {})
+        await customerPage.waitForTimeout(500)
       }
-      const cartBtn = customerPage.locator('button').filter({ hasText: /cart|panier|\d+/i }).first()
-      if (await cartBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await cartBtn.click()
-        await customerPage.getByRole('button', { name: /place order|commander/i }).click()
+      // Place Order button is directly visible in the floating cart panel
+      const placeOrderBtn = customerPage.getByRole('button', { name: /place order|commander/i })
+      if (await placeOrderBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await placeOrderBtn.click()
         await customerPage.waitForTimeout(1000)
       }
     }

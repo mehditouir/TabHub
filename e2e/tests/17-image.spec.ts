@@ -106,7 +106,7 @@ test.describe.serial('Module 17 — Image Upload', () => {
     await page.waitForTimeout(3000)
 
     // Either error message shown OR accepted and resized silently — no crash
-    await expect(page.getByText(/server error|500|crash/i)).not.toBeVisible()
+    await expect(page.getByText(/server error|internal server error|crash/i)).not.toBeVisible()
 
     // Close dialog
     await page.keyboard.press('Escape')

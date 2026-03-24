@@ -15,7 +15,7 @@ import * as path   from 'path'
 
 dotenv.config({ path: path.join(__dirname, '.env') })
 
-const API_URL = process.env.API_URL     ?? 'https://tabhub-api-caguf5bkb7b9bzca.francecentral-01.azurewebsites.net'
+const API_URL = process.env.API_URL ?? 'https://api-tabhub.azurewebsites.net'
 const TENANT  = process.env.MANAGER_TENANT   ?? 'cafetunisia'
 const EMAIL   = process.env.MANAGER_EMAIL    ?? 'mehdi@cafetunisia.com'
 const PASSWORD = process.env.MANAGER_PASSWORD ?? 'mehdi123'
@@ -56,6 +56,16 @@ async function deleteE2EEntities(token: string): Promise<void> {
   for (const c of cats.filter(c => c.name.startsWith('E2E'))) {
     await fetch(`${API_URL}/categories/${c.id}`, { method: 'DELETE', headers })
     console.log(`[teardown] Deleted category: ${c.name}`)
+  }
+
+  // ── Ingredients ────────────────────────────────────────────────────────────
+  const ingRes = await fetch(`${API_URL}/ingredients`, { headers })
+  if (ingRes.ok) {
+    const ings = await ingRes.json() as Array<{ id: string; name: string }>
+    for (const i of ings.filter(i => i.name.startsWith('E2E'))) {
+      await fetch(`${API_URL}/ingredients/${i.id}`, { method: 'DELETE', headers })
+      console.log(`[teardown] Deleted ingredient: ${i.name}`)
+    }
   }
 }
 

@@ -18,9 +18,9 @@ Each scenario is self-contained. Scenarios that depend on prior state say so exp
 |---|---|---|---|
 | **Super Admin** | *(none)* | `mehdi@mehdi.com` | `mehdi123` |
 | Manager | `cafetunisia` | `mehdi@cafetunisia.com` | `mehdi123` |
-| Waiter | `cafetunisia` | PIN `5678` | *(created in T-14/T-16)* |
-| Kitchen | `cafetunisia` | PIN `2222` | *(created in T-15)* |
-| Cashier | `cafetunisia` | PIN `3333` | *(created in T-15)* |
+| Waiter | `cafetunisia` | PIN `7777` | *(created in T-14)* |
+| Kitchen | `cafetunisia` | PIN `8888` | *(created in T-15)* |
+| Cashier | `cafetunisia` | PIN `9999` | *(created in T-15)* |
 
 > **Tip:** Run tests in order on first pass — later modules depend on data created in earlier ones.
 > For Swagger calls, always set header `X-Tenant: cafetunisia` in the **Authorize** dialog.
@@ -162,39 +162,37 @@ Each scenario is self-contained. Scenarios that depend on prior state say so exp
 **Preconditions:** T-10 complete, "Terrasse" selected in Editor
 
 **Steps:**
-1. Click cell (col 1, row 1) — a table is created at that position
-2. Repeat for (col 2, row 1) and (col 1, row 2)
-3. Total: 3 tables added
+1. Click an empty cell (+ button) — enter table number `T1` → Save
+2. Click another empty cell → enter `T2` → Save
 
 **Expected:**
-- 3 cells show table numbers (e.g. T1, T2, T3)
-- Each cell has a QR icon or button
+- 2 cells show table numbers T1 and T2
+- Each filled cell is coloured (brand colour) and has a clickable title
 
 ---
 
-### T-12 — QR code generation and download
+### T-12 — QR code visible in table modal
 **Preconditions:** T-11 complete
 
 **Steps:**
-1. Click the QR button on table T1
-2. A modal opens showing the QR code image
-3. Note the URL shown — it should contain `/menu/cafetunisia?table=<uuid>`
+1. On the Editor tab with "E2E Terrasse" selected, click table T1
+2. A modal opens
 
 **Expected:**
-- QR code image is visible
-- URL contains the correct tenant slug and a UUID
-- Download button downloads a PNG/SVG file
+- QR code image is visible in the modal
+- A read-only URL input shows the full menu URL: `/menu/cafetunisia?table=<uuid>`
+- Download button (↓) is present and enabled
 
 ---
 
 ### T-13 — Delete a table
 **Steps:**
-1. Delete table T3 from the grid (click delete or right-click → delete)
-2. Confirm deletion
+1. Click table T2 to open its modal
+2. Click the **Delete** button in the modal → confirm
 
 **Expected:**
-- T3 cell is empty
-- Refreshing the page — T3 is gone
+- T2 cell is empty (shows + again)
+- Refreshing the page — T2 is gone, T1 remains
 
 ---
 
@@ -205,34 +203,32 @@ Each scenario is self-contained. Scenarios that depend on prior state say so exp
 
 **Steps:**
 1. Click **Add staff**
-2. Enter display name: `Ali Waiter`, role: `Waiter`, PIN: `1234`
+2. Enter display name: `E2E Waiter`, role: `Waiter`, PIN: `7777`
 3. Save
 
 **Expected:**
-- "Ali Waiter" appears in the staff list with a "Waiter" badge
+- "E2E Waiter" appears in the staff list with a "Waiter" badge
 
 ---
 
 ### T-15 — Create kitchen and cashier staff
 **Steps:**
-1. Click **Add staff** → name: `Sara Kitchen`, role: `Kitchen`, PIN: `2222` → Save
-2. Click **Add staff** → name: `Omar Cashier`, role: `Cashier`, PIN: `3333` → Save
+1. Click **Add staff** → name: `E2E Kitchen`, role: `Kitchen`, PIN: `8888` → Save
+2. Click **Add staff** → name: `E2E Cashier`, role: `Cashier`, PIN: `9999` → Save
 
 **Expected:**
 - Both appear in the list with correct role badges
 
 ---
 
-### T-16 — Edit staff name and change PIN
+### T-16 — Edit staff name
 **Steps:**
-1. Click edit on "Ali Waiter"
-2. Change display name to `Ali Ben Waiter` → Save
-3. Open PIN management for this staff member
-4. Set new PIN: `5678` → Save
+1. Click edit on "E2E Waiter"
+2. Change display name to `E2E Ben Waiter` → Save
 
 **Expected:**
-- Name updated to "Ali Ben Waiter" in the list
-- New PIN `5678` will be used for login (verified in T-25)
+- Name updated to "E2E Ben Waiter" in the list
+- PIN `7777` remains unchanged
 
 ---
 
@@ -241,24 +237,24 @@ Each scenario is self-contained. Scenarios that depend on prior state say so exp
 
 **Steps:**
 1. Go to **Spaces** → **Zones** sub-tab
-2. Select staff: `Ali Ben Waiter`
-3. Select space: `Terrasse`
-4. Assign a zone covering cols 1–2, rows 1–2
+2. Select staff: `E2E Ben Waiter`
+3. Select space: `E2E Terrasse`
+4. Assign a zone covering at least cols 1–2, rows 1–2
 5. Save
 
 **Expected:**
-- Zone appears in the zone list under Ali Ben Waiter
-- Terrasse grid shows a zone overlay for those cells
+- Zone appears in the zone list under E2E Ben Waiter
+- Grid shows a zone overlay for those cells
 
 ---
 
 ### T-18 — Delete staff
 **Steps:**
-1. Click **Add staff** → name: `Temp Staff`, role: `Waiter`, PIN: `9999` → Save
-2. Click delete on "Temp Staff" → confirm
+1. Click **Add staff** → name: `E2E Temp Staff`, role: `Waiter`, PIN: `1111` → Save
+2. Click delete on "E2E Temp Staff" → confirm
 
 **Expected:**
-- "Temp Staff" no longer appears in the staff list
+- "E2E Temp Staff" no longer appears in the staff list
 
 ---
 
@@ -352,17 +348,17 @@ Each scenario is self-contained. Scenarios that depend on prior state say so exp
 ## Module 6 — Staff PIN Login
 
 ### T-25 — Waiter PIN login
-**Preconditions:** T-16 complete (Ali Ben Waiter with PIN 5678)
+**Preconditions:** T-14 complete (E2E Waiter with PIN 7777)
 
 **Steps:**
 1. Go to `https://ashy-grass-0c75bb903.6.azurestaticapps.net/waiter/cafetunisia`
-2. Enter PIN: `5678`
+2. Enter PIN: `7777`
 3. Tap/click **Login**
 
 **Expected:**
-- Logged in as "Ali Ben Waiter"
+- Logged in as "E2E Waiter" (or "E2E Ben Waiter" after T-16)
 - Floor plan tab is visible
-- Only tables within Ali's assigned zone are highlighted
+- Only tables within the assigned zone are highlighted
 
 ---
 
@@ -379,11 +375,11 @@ Each scenario is self-contained. Scenarios that depend on prior state say so exp
 ---
 
 ### T-27 — Kitchen PIN login
-**Preconditions:** T-15 complete (Sara Kitchen, PIN 2222)
+**Preconditions:** T-15 complete (E2E Kitchen, PIN 8888)
 
 **Steps:**
 1. Go to `https://ashy-grass-0c75bb903.6.azurestaticapps.net/kitchen/cafetunisia`
-2. Enter PIN: `2222` → Login
+2. Enter PIN: `8888` → Login
 
 **Expected:**
 - Logged into kitchen display
@@ -392,11 +388,11 @@ Each scenario is self-contained. Scenarios that depend on prior state say so exp
 ---
 
 ### T-28 — Cashier PIN login
-**Preconditions:** T-15 complete (Omar Cashier, PIN 3333)
+**Preconditions:** T-15 complete (E2E Cashier, PIN 9999)
 
 **Steps:**
 1. Go to `https://ashy-grass-0c75bb903.6.azurestaticapps.net/cashier/cafetunisia`
-2. Enter PIN: `3333` → Login
+2. Enter PIN: `9999` → Login
 
 **Expected:**
 - Logged into cashier app
@@ -529,22 +525,23 @@ Each scenario is self-contained. Scenarios that depend on prior state say so exp
 ## Module 8 — Waiter Application
 
 ### T-38 — Floor plan shows assigned zone only
-**Preconditions:** T-17 complete (Ali's zone: cols 1–2, rows 1–2 of Terrasse), T-25 complete (logged in as Ali)
+**Preconditions:** T-17 complete (zone assigned to E2E Ben Waiter on E2E Terrasse), T-25 complete (logged in as waiter)
 
 **Steps:**
-1. On the waiter app, select space "Terrasse"
+1. On the waiter app, select space "E2E Terrasse" (or Terrasse)
 
 **Expected:**
-- Only tables within Ali's zone (T1, T2) are highlighted/accessible
+- Tables within the assigned zone are highlighted/accessible
 - Tables outside the zone are grayed out or not interactive
+- Grid is visible (class contains "grid", "floor", or "plan")
 
 ---
 
 ### T-39 — Receive notification and ACK an order
-**Preconditions:** T-25 (waiter logged in as Ali), customer menu open at a table in Ali's zone
+**Preconditions:** T-25 (waiter logged in), T-33 complete (QR token available for table in zone)
 
 **Steps:**
-1. From the customer menu tab, place a new order on table T1 (in Ali's zone)
+1. From the customer menu tab, place a new order on table T1
 2. Watch the waiter tab
 
 **Expected:**
@@ -587,9 +584,9 @@ Each scenario is self-contained. Scenarios that depend on prior state say so exp
 
 ### T-42 — Place order from waiter tablet (staff bypass)
 **Steps:**
-1. On the waiter app, tap **New Order** or the order creation button
-2. Select table T1
-3. Browse menu and add "Café"
+1. On the waiter app, tap **New Order** or use the order creation flow
+2. Select a table
+3. Browse menu and add an item
 4. Submit
 
 **Expected:**
@@ -645,7 +642,7 @@ Each scenario is self-contained. Scenarios that depend on prior state say so exp
 ## Module 9 — Kitchen Application
 
 ### T-46 — New order appears in kitchen queue
-**Preconditions:** T-27 (kitchen logged in as Sara), at least one pending order
+**Preconditions:** T-27 (kitchen logged in with PIN 8888), at least one pending order
 
 **Steps:**
 1. Place a new order from the customer menu (or waiter app)
@@ -692,7 +689,7 @@ Each scenario is self-contained. Scenarios that depend on prior state say so exp
 ## Module 10 — Cashier Application
 
 ### T-50 — Create a table order from cashier
-**Preconditions:** T-28 (cashier logged in as Omar), table T1 exists
+**Preconditions:** T-28 (cashier logged in with PIN 9999), table T1 exists
 
 **Steps:**
 1. On the cashier **New Order** tab
@@ -767,9 +764,9 @@ Each scenario is self-contained. Scenarios that depend on prior state say so exp
 Open all of the following tabs at the same time:
 - **Tab A (Manager):** `https://ashy-grass-0c75bb903.6.azurestaticapps.net/manager/cafetunisia/dashboard`
 - **Tab B (Customer):** QR URL for table T1 (from T-12)
-- **Tab C (Waiter):** `/waiter/cafetunisia` — log in as Ali (PIN 5678)
-- **Tab D (Kitchen):** `/kitchen/cafetunisia` — log in as Sara (PIN 2222)
-- **Tab E (Cashier):** `/cashier/cafetunisia` — log in as Omar (PIN 3333)
+- **Tab C (Waiter):** `/waiter/cafetunisia` — log in with PIN `7777`
+- **Tab D (Kitchen):** `/kitchen/cafetunisia` — log in with PIN `8888`
+- **Tab E (Cashier):** `/cashier/cafetunisia` — log in with PIN `9999`
 
 **Steps:**
 1. **Tab B (Customer):** Add 2 items (at least one with a modifier) → Place order
@@ -832,15 +829,16 @@ Open all of the following tabs at the same time:
 
 ---
 
-### T-59 — QR download from Spaces Editor
+### T-59 — QR visible in Spaces Editor table modal
 **Steps:**
 1. Go to **Spaces** → **Editor** tab
-2. Click the QR button on any table
-3. Click the **Download** button in the modal
+2. Click a space from the list (e.g. Terrasse or E2E Terrasse)
+3. Click any occupied table cell
 
 **Expected:**
-- A PNG or SVG file is downloaded
-- The QR code encodes the correct URL: `.../menu/cafetunisia?table=<uuid>`
+- Modal opens with a QR code image visible
+- Read-only URL input shows `.../menu/cafetunisia?table=<uuid>` (valid UUID)
+- Download button (↓) is present and enabled
 
 ---
 
@@ -1195,11 +1193,11 @@ Use this as a quick reference to track what you've verified:
 | T-09 | Config | Update opening hours | |
 | T-10 | Spaces | Create a space | |
 | T-11 | Spaces | Add tables to the grid | |
-| T-12 | Spaces | QR code generation and download | |
+| T-12 | Spaces | QR code visible in table modal | |
 | T-13 | Spaces | Delete a table | |
 | T-14 | Staff | Create a waiter | |
 | T-15 | Staff | Create kitchen and cashier staff | |
-| T-16 | Staff | Edit staff name and change PIN | |
+| T-16 | Staff | Edit staff name | |
 | T-17 | Staff | Assign waiter zone | |
 | T-18 | Staff | Delete staff | |
 | T-19 | Menu | Create a category | |
@@ -1242,7 +1240,7 @@ Use this as a quick reference to track what you've verified:
 | T-56 | E2E | Complete takeaway flow | |
 | T-57 | Dashboard | KPIs reflect real data | |
 | T-58 | Dashboard | Live floor plan | |
-| T-59 | Dashboard | QR download from Editor | |
+| T-59 | Dashboard | QR visible in Spaces Editor table modal | |
 | T-60 | Isolation | Data does not bleed between tenants | |
 | T-61 | Isolation | Cross-tenant JWT rejected | |
 | T-62 | Navigation | Manager routes are path-based | |
