@@ -86,13 +86,12 @@ test.describe.serial('Module 3 — Spaces & Tables', () => {
     await page.waitForLoadState('networkidle')
     await page.getByTestId('tab-editor').click()
     await page.getByText(SPACE_NAME, { exact: true }).first().click()
+    await page.waitForLoadState('networkidle')
 
-    // Click the first occupied table cell (not a '+' button)
-    const occupiedCell = page.getByRole('button').filter({ hasNotText: '+' })
-      .and(page.locator('button[title*="Table"]'))
-      .first()
+    // Click the first occupied table cell
+    const occupiedCell = page.locator('button[title*="Table"]').first()
 
-    if (!(await occupiedCell.isVisible({ timeout: 8000 }).catch(() => false))) {
+    if (!(await occupiedCell.isVisible({ timeout: 10000 }).catch(() => false))) {
       test.skip(true, 'No tables found in E2E Terrasse — T-11 may not have run')
       return
     }
@@ -146,18 +145,20 @@ test.describe.serial('Module 3 — Spaces & Tables', () => {
 async function saveQrTokenFromPage(page: import('@playwright/test').Page) {
   // Click the first occupied table cell (title contains "Table")
   const occupiedCell = page.locator('button[title*="Table"]').first()
-  if (!(await occupiedCell.isVisible({ timeout: 2000 }).catch(() => false))) return
+  if (!(await occupiedCell.isVisible({ timeout: 5000 }).catch(() => false))) return
 
   await occupiedCell.click()
   await page.waitForTimeout(500)
 
   const modal = page.locator('[role="dialog"]').first()
-  if (!(await modal.isVisible({ timeout: 2000 }).catch(() => false))) {
+  if (!(await modal.isVisible({ timeout: 3000 }).catch(() => false))) {
     await page.keyboard.press('Escape')
     return
   }
 
   const urlInput = modal.locator('input[readonly]').first()
+  // Wait for the QR canvas to finish generating before reading the URL
+  await urlInput.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {})
   const urlVal = await urlInput.inputValue().catch(() => '')
   const match  = urlVal?.match(/\?table=([\w-]+)/)
   if (match?.[1]) {

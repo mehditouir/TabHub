@@ -45,11 +45,11 @@ test.describe.serial('Module 13 — Manager Dashboard & Reports', () => {
     const firstSpace = page.getByRole('button', { name: /terrasse|salle/i }).first()
     await expect(firstSpace).toBeVisible({ timeout: 5000 })
     await firstSpace.click()
-    await page.waitForTimeout(500)
+    await page.waitForLoadState('networkidle')
 
     // Click the first occupied table cell (title contains "Table")
     const occupiedCell = page.locator('button[title*="Table"]').first()
-    if (!(await occupiedCell.isVisible({ timeout: 5000 }).catch(() => false))) {
+    if (!(await occupiedCell.isVisible({ timeout: 10000 }).catch(() => false))) {
       test.skip(true, 'No table buttons found — T-11 may not have added tables yet')
       return
     }

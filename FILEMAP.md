@@ -487,7 +487,7 @@ src/lib/utils.test.ts  — Tests: cn class merging, formatPrice output, formatTi
 ### frontend/src/pages/
 
 ```
-src/pages/CustomerMenu.tsx       — Public QR menu: browse categories/items, modifier selection modal, floating cart, place order, live order tracking (SignalR), call waiter/request bill
+src/pages/CustomerMenu.tsx       — Public QR menu: browse categories/items, modifier selection modal, floating cart, place order, live order tracking (SignalR), call waiter/request bill; FR/AR/EN language switcher
 src/pages/CustomerMenu.test.tsx  — Tests: renders menu items, add to cart, submit order flow
 src/pages/TakeawayDisplay.tsx    — Public takeaway board (/takeaway/:tenant): live order queue grouped by status (Pending/Preparing/Ready), SignalR-driven, no auth required
 src/pages/KitchenApp.tsx         — Kitchen display (/kitchen/:tenant): PIN login (kitchen role), two-column kanban (Pending/InProgress), advance + reject, SignalR-driven, elapsed time indicator
@@ -505,7 +505,7 @@ src/pages/Login.test.tsx         — Tests: form submission, error display, role
 src/pages/manager/Config.tsx          — Settings page: restaurant name, TVA rate, default language, per-day opening hours
 src/pages/manager/Dashboard.tsx       — KPI cards (order counts), avg completion time, 30-day revenue chart, top items; onboarding CTA when no spaces exist
 src/pages/manager/Dashboard.test.tsx  — Tests: KPI values, revenue total, top items rendered from MSW fixtures
-src/pages/manager/Menu.tsx            — Category accordion + item rows; create/edit/delete modals; photo upload for items; i18n
+src/pages/manager/Menu.tsx            — Category accordion + item rows; create/edit/delete modals; photo upload for items; inline modifier group creation; ingredients tab (list + toggle active + create); i18n
 src/pages/manager/Setup.tsx           — NEW: Onboarding wizard (4 steps: restaurant → spaces → staff → menu); shown to new tenants with zero spaces
 src/pages/manager/Spaces.tsx          — Space list + 3 tabs: Editor (grid + QR modals), Live (real-time table status), Zones (waiter zone drag-assign); i18n
 src/pages/manager/Staff.tsx           — Staff list with role badges; create/edit/delete modal with separate PIN management; i18n

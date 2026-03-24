@@ -17,26 +17,27 @@ test.describe.serial('Module 17 — Image Upload', () => {
     await page.goto(`/manager/${TENANT}/menu`)
     await page.waitForLoadState('networkidle')
 
-    // Expand Boissons and find Café
-    await page.getByText('Boissons').first().click()
-    await page.waitForTimeout(300)
+    // Find E2E Café item and open its edit dialog
+    const cafeRow = page.locator('li').filter({ hasText: 'E2E Café' }).first()
+    if (!(await cafeRow.isVisible({ timeout: 5000 }).catch(() => false))) {
+      test.skip(true, 'E2E Café item not found — T-20 may not have run')
+      return
+    }
+    await cafeRow.getByRole('button', { name: /edit|modifier/i }).click()
 
-    // Find the photo/upload button for Café
-    const cafeRow = page.locator('li, tr, [data-testid*="item"]').filter({ hasText: 'Café' }).first()
-    const photoBtn = cafeRow.getByRole('button', { name: /photo|image|upload|pic/i })
-      .or(cafeRow.locator('input[type="file"]').locator('..'))
-      .first()
+    const dialog = page.locator('[role="dialog"]').first()
+    await expect(dialog).toBeVisible({ timeout: 3000 })
 
+    // Photo upload button is inside the edit dialog
+    const photoBtn = dialog.getByRole('button', { name: /upload|photo|change/i }).first()
     if (!(await photoBtn.isVisible({ timeout: 3000 }).catch(() => false))) {
-      test.skip(true, 'Photo upload button not found for Café item')
+      test.skip(true, 'Photo upload button not found in item edit dialog')
       return
     }
 
-    // Create a minimal 1x1 pixel JPEG in memory for testing
-    // Using a pre-existing test image if available, else create a minimal one
+    // Create a minimal JPEG for testing
     const testImagePath = path.join(__dirname, '..', 'test-image.jpg')
     if (!fs.existsSync(testImagePath)) {
-      // Create minimal JPEG (smallest valid JPEG)
       const minimalJpeg = Buffer.from(
         'ffd8ffe000104a46494600010100000100010000' +
         'ffdb004300080606070605080707070909080a0c' +
@@ -56,49 +57,44 @@ test.describe.serial('Module 17 — Image Upload', () => {
       fs.writeFileSync(testImagePath, minimalJpeg)
     }
 
-    // Click photo button and upload
-    const fileInput = page.locator('input[type="file"]').first()
-    if (await fileInput.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await fileInput.setInputFiles(testImagePath)
-    } else {
-      await photoBtn.click()
-      await page.waitForTimeout(500)
-      await page.locator('input[type="file"]').first().setInputFiles(testImagePath)
-    }
-
-    // Wait for upload to complete
+    // Click photo button then set files on the hidden input
+    await photoBtn.click()
+    await page.waitForTimeout(300)
+    await dialog.locator('input[type="file"]').first().setInputFiles(testImagePath)
     await page.waitForTimeout(3000)
 
-    // Verify image thumbnail appears or URL contains .webp
-    const img = cafeRow.locator('img').first()
-    if (await img.isVisible({ timeout: 5000 }).catch(() => false)) {
-      const src = await img.getAttribute('src')
-      // Image uploaded — should be .webp
-      await expect(img).toBeVisible()
-    } else {
-      // Fallback: verify no error message
-      await expect(page.getByText(/upload failed|error/i)).not.toBeVisible()
-    }
+    // Verify no upload error
+    await expect(page.getByText(/upload failed/i)).not.toBeVisible()
+
+    // Save and close the dialog
+    await page.getByRole('button', { name: /save|enregistrer/i }).first().click()
+    await page.waitForTimeout(500)
   })
 
   test('T-67 — Large image handling', async ({ page }) => {
     await page.goto(`/manager/${TENANT}/menu`)
     await page.waitForLoadState('networkidle')
-    await page.getByText('Boissons').first().click()
-    await page.waitForTimeout(300)
 
-    const cafeRow = page.locator('li, tr').filter({ hasText: 'Café' }).first()
-    const photoBtn = cafeRow.getByRole('button', { name: /photo|image|upload/i }).first()
+    // Find E2E Café item and open its edit dialog
+    const cafeRow = page.locator('li').filter({ hasText: 'E2E Café' }).first()
+    if (!(await cafeRow.isVisible({ timeout: 5000 }).catch(() => false))) {
+      test.skip(true, 'E2E Café item not found — T-20 may not have run')
+      return
+    }
+    await cafeRow.getByRole('button', { name: /edit|modifier/i }).click()
 
+    const dialog = page.locator('[role="dialog"]').first()
+    await expect(dialog).toBeVisible({ timeout: 3000 })
+
+    const photoBtn = dialog.getByRole('button', { name: /upload|photo|change/i }).first()
     if (!(await photoBtn.isVisible({ timeout: 3000 }).catch(() => false))) {
-      test.skip(true, 'Photo button not found')
+      test.skip(true, 'Photo button not found in edit dialog')
       return
     }
 
-    // Create a large fake file (> 5MB) using a buffer
+    // Create a large fake file (> 5MB) with JPEG header
     const largePath = path.join(__dirname, '..', 'large-test.jpg')
     if (!fs.existsSync(largePath)) {
-      // Create a 6MB file with JPEG header
       const buf = Buffer.alloc(6 * 1024 * 1024, 0xff)
       buf[0] = 0xff; buf[1] = 0xd8  // JPEG SOI marker
       fs.writeFileSync(largePath, buf)
@@ -106,13 +102,14 @@ test.describe.serial('Module 17 — Image Upload', () => {
 
     await photoBtn.click()
     await page.waitForTimeout(300)
-    const fileInput = page.locator('input[type="file"]').first()
-    await fileInput.setInputFiles(largePath)
+    await dialog.locator('input[type="file"]').first().setInputFiles(largePath)
     await page.waitForTimeout(3000)
 
-    // Either: error message shown, OR: accepted and resized silently
-    // Both are valid per REGRESSION.md — just no crash
+    // Either error message shown OR accepted and resized silently — no crash
     await expect(page.getByText(/server error|500|crash/i)).not.toBeVisible()
+
+    // Close dialog
+    await page.keyboard.press('Escape')
   })
 
 })

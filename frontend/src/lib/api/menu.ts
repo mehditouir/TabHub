@@ -1,5 +1,5 @@
 import { apiFetch } from './client'
-import type { PublicMenuResponse, Category, MenuItem } from '@/lib/types'
+import type { PublicMenuResponse, Category, MenuItem, ModifierGroup, ModifierOption, Ingredient } from '@/lib/types'
 
 // Public — no auth required, tenant passed explicitly (from URL)
 export function getPublicMenu(tenant: string) {
@@ -49,6 +49,43 @@ export function updateMenuItem(id: string, data: {
 
 export function deleteMenuItem(id: string) {
   return apiFetch<void>(`/menu-items/${id}`, { method: 'DELETE' })
+}
+
+// ── Modifier groups ───────────────────────────────────────────────────────────
+
+export function getModifierGroups(menuItemId: string) {
+  return apiFetch<ModifierGroup[]>(`/modifier-groups?menuItemId=${menuItemId}`)
+}
+
+export function createModifierGroup(data: {
+  menuItemId: string; name: string; isRequired: boolean
+  minSelections: number; maxSelections: number; sortOrder: number
+}) {
+  return apiFetch<ModifierGroup>('/modifier-groups', { method: 'POST', body: JSON.stringify(data) })
+}
+
+export function deleteModifierGroup(id: string) {
+  return apiFetch<void>(`/modifier-groups/${id}`, { method: 'DELETE' })
+}
+
+export function createModifierOption(data: {
+  modifierGroupId: string; name: string; priceDelta: number; isAvailable: boolean; sortOrder: number
+}) {
+  return apiFetch<ModifierOption>('/modifier-options', { method: 'POST', body: JSON.stringify(data) })
+}
+
+// ── Ingredients ───────────────────────────────────────────────────────────────
+
+export function getIngredients() {
+  return apiFetch<Ingredient[]>('/ingredients')
+}
+
+export function createIngredient(name: string) {
+  return apiFetch<Ingredient>('/ingredients', { method: 'POST', body: JSON.stringify({ name }) })
+}
+
+export function updateIngredient(id: string, data: { name: string; isActive: boolean }) {
+  return apiFetch<Ingredient>(`/ingredients/${id}`, { method: 'PUT', body: JSON.stringify(data) })
 }
 
 export async function uploadMenuItemImage(id: string, file: File): Promise<{ imageUrl: string }> {

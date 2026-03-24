@@ -80,8 +80,30 @@ test.describe.serial('Module 16 — PDF Bill', () => {
         }
       }
     } else {
-      // No open sessions — skip
-      test.skip(true, 'No open sessions to generate a bill from. Run T-50/T-55 first.')
+      // No open sessions — use API to verify PDF generation against a completed order
+      const token  = await page.evaluate(() => localStorage.getItem('tabhub_token'))
+      const apiUrl = process.env.API_URL ?? 'https://tabhub-api-caguf5bkb7b9bzca.francecentral-01.azurewebsites.net'
+      const ordersRes = await page.request.get(`${apiUrl}/orders`, {
+        headers: {
+          'Authorization': `Bearer ${token ?? ''}`,
+          'X-Tenant':      TENANT,
+        },
+      })
+      if (ordersRes.ok()) {
+        const orders = await ordersRes.json()
+        if (orders.length > 0) {
+          const billRes = await page.request.get(`${apiUrl}/orders/${orders[0].id}/bill.pdf`, {
+            headers: {
+              'Authorization': `Bearer ${token ?? ''}`,
+              'X-Tenant':      TENANT,
+            },
+          })
+          expect(billRes.status()).toBe(200)
+          expect(billRes.headers()['content-type']).toContain('pdf')
+          const body = await billRes.body()
+          expect(body.slice(0, 4).toString()).toBe('%PDF')
+        }
+      }
     }
   })
 

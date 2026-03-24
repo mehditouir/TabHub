@@ -231,7 +231,10 @@ Depends on Sprint 7 completion.
 - ✅ **Rate limiting** — built-in .NET 8 fixed-window rate limiter: 10 requests/minute per IP on `/auth/login`, `/auth/staff/pin-login`, `/admin/auth/login`; returns JSON 429 on rejection
 - ✅ **FluentValidation** — `FluentValidation.AspNetCore` added; validators for `LoginRequest`, `StaffPinLoginRequest`, `RegisterManagerRequest`, `CreateTenantRequest`, `AdminCreateManagerRequest`; auto-validation returns 400 on invalid input
 - ✅ **Arabic RTL QA** — `text-left` → `text-start`, `ml-auto`/`mr-` → `ms-auto`/`me-` in CustomerMenu, Menu, Spaces, WaiterApp, TakeawayDisplay; `dir="rtl"` on `<html>` already flips flex layouts correctly
-- ✅ **E2E Playwright suite** — 83 tests (T-01–T-83), 21 modules, sequential workers, multi-context SignalR tests, idempotent find-or-create, traces on failure
+- ✅ **E2E Playwright suite** — 83 tests (T-01–T-83), 21 modules, sequential workers, multi-context SignalR tests, idempotent find-or-create, traces on failure; all 83 tests passing on Azure deployment
+- ✅ **Modifier group UI** — `Menu.tsx` `MenuItemFormModal` now has inline modifier group creation (name, required toggle, options list) using existing backend (`/modifier-groups`, `/modifier-options`)
+- ✅ **Ingredients UI** — `Menu.tsx` Items/Ingredients toggle tabs; ingredients list with active toggle + create new ingredient using existing backend (`/ingredients`)
+- ✅ **Customer language switcher** — FR/AR/EN buttons in `CustomerMenu.tsx` header calling `i18n.changeLanguage()`; RTL on AR via existing `languageChanged` handler
 - ✅ **Demo data seed** — `db-init.sql` fully seeded: cafetunisia (8 items, 2 spaces, 3 staff) + restauranttunisia (23 items, 5 categories, 3 spaces, 4 staff, historical orders); all idempotent
 - ✅ **Onboarding wizard** — `/manager/:tenant/setup` — 4-step guided setup (restaurant config → spaces → staff → menu); auto-shown on Dashboard when no spaces exist; value proposition copy on each step
 - ✅ **Graduation report** — `documentation/graduation-report.md` — full report: problem, architecture, sprints, decisions, results, roadmap

@@ -4,9 +4,11 @@ import {
   getCategories, createCategory, updateCategory, deleteCategory,
   getMenuItems, createMenuItem, updateMenuItem, deleteMenuItem,
   uploadMenuItemImage,
+  createModifierGroup, createModifierOption,
+  getIngredients, createIngredient, updateIngredient,
 } from '@/lib/api/menu'
 import { formatPrice } from '@/lib/utils'
-import type { Category, MenuItem } from '@/lib/types'
+import type { Category, MenuItem, Ingredient } from '@/lib/types'
 
 // ── Overlay ───────────────────────────────────────────────────────────────────
 
@@ -121,6 +123,38 @@ function MenuItemFormModal({ initial, categoryId, categories, onSave, onDelete, 
   const [saving,       setSaving]       = useState(false)
   const [deleting,     setDeleting]     = useState(false)
 
+  // Modifier group inline form (only visible when editing an existing item)
+  const [showGroupForm,  setShowGroupForm]  = useState(false)
+  const [groupName,      setGroupName]      = useState('')
+  const [groupRequired,  setGroupRequired]  = useState(false)
+  const [groupOptions,   setGroupOptions]   = useState<string[]>([])
+  const [savingGroup,    setSavingGroup]    = useState(false)
+
+  async function handleSaveGroup() {
+    if (!initial || !groupName.trim()) return
+    setSavingGroup(true)
+    try {
+      const group = await createModifierGroup({
+        menuItemId:    initial.id,
+        name:          groupName.trim(),
+        isRequired:    groupRequired,
+        minSelections: groupRequired ? 1 : 0,
+        maxSelections: 1,
+        sortOrder:     0,
+      })
+      for (let i = 0; i < groupOptions.length; i++) {
+        const optName = groupOptions[i].trim()
+        if (optName) await createModifierOption({
+          modifierGroupId: group.id, name: optName,
+          priceDelta: 0, isAvailable: true, sortOrder: i,
+        })
+      }
+      setGroupName(''); setGroupRequired(false); setGroupOptions([]); setShowGroupForm(false)
+    } finally {
+      setSavingGroup(false)
+    }
+  }
+
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
@@ -227,6 +261,70 @@ function MenuItemFormModal({ initial, categoryId, categories, onSave, onDelete, 
           </button>
         </div>
 
+        {/* Modifier groups — only shown when editing an existing item */}
+        {initial && (
+          <div className="flex flex-col gap-2 border-t border-zinc-100 pt-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-zinc-700">Modifier Groups</span>
+              <button
+                type="button"
+                onClick={() => setShowGroupForm(v => !v)}
+                className="rounded border border-zinc-200 px-2 py-1 text-xs text-zinc-600 hover:bg-zinc-50"
+              >
+                Add modifier group
+              </button>
+            </div>
+            {showGroupForm && (
+              <div className="rounded border border-zinc-200 bg-zinc-50 p-3 flex flex-col gap-2">
+                <label className="flex flex-col gap-1 text-xs">
+                  Group name
+                  <input
+                    className={inputCls}
+                    value={groupName}
+                    onChange={e => setGroupName(e.target.value)}
+                    placeholder="e.g. Sugar level"
+                  />
+                </label>
+                <label className="flex items-center gap-2 text-xs">
+                  <input
+                    type="checkbox"
+                    checked={groupRequired}
+                    onChange={e => setGroupRequired(e.target.checked)}
+                  />
+                  Required
+                </label>
+                {groupOptions.map((opt, i) => (
+                  <label key={i} className="flex flex-col gap-1 text-xs">
+                    Option name
+                    <input
+                      className={inputCls}
+                      value={opt}
+                      onChange={e => {
+                        const next = [...groupOptions]; next[i] = e.target.value; setGroupOptions(next)
+                      }}
+                    />
+                  </label>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setGroupOptions(prev => [...prev, ''])}
+                  className="self-start text-xs text-zinc-500 hover:text-zinc-700"
+                >
+                  + Add option
+                </button>
+                <button
+                  type="button"
+                  disabled={savingGroup || !groupName.trim()}
+                  onClick={handleSaveGroup}
+                  className="self-start rounded bg-brand px-3 py-1 text-xs text-white disabled:opacity-60"
+                >
+                  {savingGroup ? 'Saving…' : 'Save'}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="flex items-center justify-between pt-2">
           {onDelete ? (
             <button type="button" onClick={handleDelete} disabled={deleting}
@@ -254,9 +352,11 @@ function MenuItemFormModal({ initial, categoryId, categories, onSave, onDelete, 
 
 type CategoryModal = 'create' | Category
 type ItemModal     = { categoryId: string } | MenuItem
+type MenuView      = 'items' | 'ingredients'
 
 export function Menu() {
   const { t } = useTranslation()
+  const [menuView,      setMenuView]      = useState<MenuView>('items')
   const [categories,    setCategories]    = useState<Category[]>([])
   const [items,         setItems]         = useState<MenuItem[]>([])
   const [loading,       setLoading]       = useState(true)
@@ -264,12 +364,46 @@ export function Menu() {
   const [categoryModal, setCategoryModal] = useState<CategoryModal | null>(null)
   const [itemModal,     setItemModal]     = useState<ItemModal | null>(null)
 
+  // Ingredients state
+  const [ingredients,      setIngredients]      = useState<Ingredient[]>([])
+  const [ingLoading,       setIngLoading]        = useState(false)
+  const [showIngForm,      setShowIngForm]       = useState(false)
+  const [newIngName,       setNewIngName]        = useState('')
+  const [savingIng,        setSavingIng]         = useState(false)
+
   useEffect(() => {
     Promise.all([getCategories(), getMenuItems()])
       .then(([cats, its]) => { setCategories(cats); setItems(its) })
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => {
+    if (menuView !== 'ingredients') return
+    setIngLoading(true)
+    getIngredients()
+      .then(setIngredients)
+      .catch(console.error)
+      .finally(() => setIngLoading(false))
+  }, [menuView])
+
+  async function handleCreateIngredient() {
+    if (!newIngName.trim()) return
+    setSavingIng(true)
+    try {
+      const created = await createIngredient(newIngName.trim())
+      setIngredients(prev => [...prev, created])
+      setNewIngName('')
+      setShowIngForm(false)
+    } finally {
+      setSavingIng(false)
+    }
+  }
+
+  async function handleToggleIngredient(ing: Ingredient) {
+    const updated = await updateIngredient(ing.id, { name: ing.name, isActive: !ing.isActive })
+    setIngredients(prev => prev.map(i => i.id === updated.id ? updated : i))
+  }
 
   function toggleCollapse(id: string) {
     setCollapsed(prev => {
@@ -358,16 +492,104 @@ export function Menu() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-zinc-900">{t('menu.title')}</h1>
-        <button
-          data-testid="btn-add-category"
-          onClick={() => setCategoryModal('create')}
-          className="rounded-lg bg-brand px-4 py-2 text-sm text-white hover:bg-brand/80"
-        >
-          {t('menu.newCategory')}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setMenuView('items')}
+            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${menuView === 'items' ? 'bg-zinc-900 text-white' : 'text-zinc-600 hover:bg-zinc-100'}`}
+          >
+            Items
+          </button>
+          <button
+            onClick={() => setMenuView('ingredients')}
+            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${menuView === 'ingredients' ? 'bg-zinc-900 text-white' : 'text-zinc-600 hover:bg-zinc-100'}`}
+          >
+            Ingredients
+          </button>
+          {menuView === 'items' && (
+            <button
+              data-testid="btn-add-category"
+              onClick={() => setCategoryModal('create')}
+              className="rounded-lg bg-brand px-4 py-2 text-sm text-white hover:bg-brand/80"
+            >
+              {t('menu.newCategory')}
+            </button>
+          )}
+        </div>
       </div>
 
-      {sortedCategories.length === 0 ? (
+      {/* Ingredients view */}
+      {menuView === 'ingredients' && (
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">All Ingredients</h2>
+            <button
+              onClick={() => setShowIngForm(true)}
+              className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100"
+            >
+              + Add ingredient
+            </button>
+          </div>
+
+          {ingLoading ? (
+            <p className="text-sm text-zinc-400">{t('common.loading')}</p>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {ingredients.map(ing => (
+                <li key={ing.id} className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-white px-4 py-3">
+                  <span className="flex-1 text-sm font-medium text-zinc-900">{ing.name}</span>
+                  {!ing.isActive && (
+                    <span className="rounded bg-red-50 px-1.5 py-0.5 text-xs text-red-500">{t('common.inactive')}</span>
+                  )}
+                  <input
+                    type="checkbox"
+                    checked={ing.isActive}
+                    onChange={() => handleToggleIngredient(ing)}
+                    className="h-4 w-4 cursor-pointer accent-brand"
+                    title={ing.isActive ? 'Disable ingredient' : 'Enable ingredient'}
+                  />
+                </li>
+              ))}
+              {ingredients.length === 0 && (
+                <p className="text-sm text-zinc-400">No ingredients yet.</p>
+              )}
+            </ul>
+          )}
+
+          {/* Add ingredient inline modal */}
+          {showIngForm && (
+            <Overlay onClose={() => setShowIngForm(false)}>
+              <form
+                onSubmit={e => { e.preventDefault(); handleCreateIngredient() }}
+                className="flex flex-col gap-4"
+              >
+                <h2 className="text-lg font-semibold">New Ingredient</h2>
+                <label className="flex flex-col gap-1 text-sm">
+                  Name
+                  <input
+                    className={inputCls}
+                    value={newIngName}
+                    onChange={e => setNewIngName(e.target.value)}
+                    required autoFocus
+                  />
+                </label>
+                <div className="flex justify-end gap-2">
+                  <button type="button" onClick={() => setShowIngForm(false)}
+                    className="rounded-lg px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-100">
+                    {t('common.cancel')}
+                  </button>
+                  <button type="submit" disabled={savingIng}
+                    className="rounded-lg bg-brand px-4 py-2 text-sm text-white disabled:opacity-60">
+                    {savingIng ? t('common.saving') : t('common.save')}
+                  </button>
+                </div>
+              </form>
+            </Overlay>
+          )}
+        </div>
+      )}
+
+      {/* Items view */}
+      {menuView === 'items' && (sortedCategories.length === 0 ? (
         <div className="rounded-xl border-2 border-dashed border-zinc-200 p-12 text-center text-zinc-400">
           {t('menu.noCategories')}
         </div>
@@ -467,7 +689,7 @@ export function Menu() {
             )
           })}
         </div>
-      )}
+      ))}
 
       {/* Category modal */}
       {categoryModal !== null && (

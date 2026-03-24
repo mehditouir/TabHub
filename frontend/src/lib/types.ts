@@ -142,10 +142,13 @@ export interface BusyHour         { hour: number; orderCount: number }
 // Management (staff, categories, spaces, etc.)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export interface StaffMember { id: string; displayName: string; role: string; isActive: boolean }
-export interface WaiterZone  { id: string; spaceId: string; colStart: number; colEnd: number; rowStart: number; rowEnd: number }
-export interface Category    { id: string; name: string; sortOrder: number; isActive: boolean; translations: CategoryTranslation[] }
-export interface MenuItem    { id: string; categoryId: string; name: string; price: number; isAvailable: boolean; sortOrder: number; description: string | null; imageUrl: string | null }
+export interface StaffMember    { id: string; displayName: string; role: string; isActive: boolean }
+export interface WaiterZone    { id: string; spaceId: string; colStart: number; colEnd: number; rowStart: number; rowEnd: number }
+export interface Category      { id: string; name: string; sortOrder: number; isActive: boolean; translations: CategoryTranslation[] }
+export interface MenuItem      { id: string; categoryId: string; name: string; price: number; isAvailable: boolean; sortOrder: number; description: string | null; imageUrl: string | null }
+export interface ModifierOption { id: string; modifierGroupId: string; name: string; priceDelta: number; isAvailable: boolean; sortOrder: number }
+export interface ModifierGroup  { id: string; menuItemId: string; name: string; isRequired: boolean; minSelections: number; maxSelections: number; sortOrder: number; options: ModifierOption[] }
+export interface Ingredient     { id: string; name: string; isActive: boolean }
 export interface Space       { id: string; name: string; cols: number; rows: number; sortOrder: number; isActive: boolean }
 export interface Table       { id: string; spaceId: string; number: string; col: number; row: number; qrToken: string; isActive: boolean }
 export interface TableResolveResponse { tableId: string; tableNumber: string }

@@ -5,6 +5,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import i18n from '@/i18n'
 import * as signalR from '@microsoft/signalr'
 import { getPublicMenu }                       from '@/lib/api/menu'
 import { placeOrder, callWaiter, requestBill } from '@/lib/api/orders'
@@ -393,9 +394,32 @@ export function CustomerMenu() {
 
   // ── Render: menu browse view ───────────────────────────────────────────────
 
+  const LANG_OPTS = [
+    { code: 'fr', label: 'FR' },
+    { code: 'ar', label: 'AR' },
+    { code: 'en', label: 'EN' },
+  ]
+
   return (
     <div className="mx-auto max-w-2xl px-4 py-6 pb-36">
-      <h1 className="mb-1 text-2xl font-bold text-zinc-900">{menu?.tenant}</h1>
+      <div className="mb-1 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-zinc-900">{menu?.tenant}</h1>
+        <div className="flex gap-1">
+          {LANG_OPTS.map(({ code, label }) => (
+            <button
+              key={code}
+              onClick={() => i18n.changeLanguage(code)}
+              className={`rounded px-2 py-0.5 text-xs font-medium transition-colors ${
+                i18n.language === code
+                  ? 'bg-brand text-white'
+                  : 'text-zinc-500 hover:bg-zinc-100'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
       <p className="mb-5 text-sm text-zinc-500">{t('customer.tagline')}</p>
 
       {tableError && (

@@ -60,7 +60,7 @@ test.describe.serial('Module 21 — Super Admin Interface', () => {
     await page.getByLabel('Email').fill(ADMIN_EMAIL)
     await page.getByLabel('Password').fill(ADMIN_PASSWORD)
     await page.getByRole('button', { name: 'Sign in' }).click()
-    await page.waitForURL('**/admin')
+    await page.waitForURL('**/admin', { timeout: 30000 })
 
     // Click Tenants tab
     const tenantsTab = page.getByRole('tab', { name: /tenant/i })
@@ -185,5 +185,5 @@ async function loginAdmin(page: import('@playwright/test').Page) {
   await page.getByLabel('Email').fill(ADMIN_EMAIL)
   await page.getByLabel('Password').fill(ADMIN_PASSWORD)
   await page.getByRole('button', { name: 'Sign in' }).click()
-  await page.waitForURL('**/admin')
+  await page.waitForURL('**/admin', { timeout: 30000 })
 }

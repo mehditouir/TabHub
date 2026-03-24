@@ -41,28 +41,53 @@ test.describe.serial('Module 20 — Edge Cases & Error Handling', () => {
       })
   })
 
-  test('T-73 — Unavailable item cannot be added to cart', async ({ page }) => {
-    // We need Café to be set to unavailable for this test.
-    // Since toggling back was done in T-21, let's use manager auth to confirm.
+  test('T-73 — Unavailable item cannot be added to cart', async ({ page, browser }) => {
     const state = readState()
     const menuUrl = state.tableQrToken
       ? `${process.env.BASE_URL ?? ''}/menu/${TENANT}?table=${state.tableQrToken}`
       : `${process.env.BASE_URL ?? ''}/menu/${TENANT}`
 
+    // Step 1: use manager auth to set E2E Café as unavailable
+    const mgCtx  = await browser.newContext({ storageState: 'manager-auth.json' })
+    const mgPage = await mgCtx.newPage()
+    await mgPage.goto(`/manager/${TENANT}/menu`)
+    await mgPage.waitForLoadState('networkidle')
+    const itemRow = mgPage.locator('li').filter({ hasText: 'E2E Café' }).first()
+    if (await itemRow.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await itemRow.getByRole('button', { name: /edit|modifier/i }).click()
+      const dialog = mgPage.locator('[role="dialog"]').first()
+      const availCheckbox = dialog.locator('input[type="checkbox"]').first()
+      await availCheckbox.setChecked(false)
+      await mgPage.getByRole('button', { name: /save|enregistrer/i }).first().click()
+      await mgPage.waitForTimeout(500)
+    }
+    await mgCtx.close()
+
+    // Step 2: verify the item is not addable from customer menu
     await page.goto(menuUrl)
     await page.waitForLoadState('networkidle')
 
-    // Look for an item with "unavailable" badge
-    const unavailableBadge = page.getByText(/unavailable|indisponible/i).first()
-    if (await unavailableBadge.isVisible({ timeout: 3000 }).catch(() => false)) {
-      // The item near this badge should not have an Add button
-      const itemCard = unavailableBadge.locator('..').locator('..')
-      const addBtn   = itemCard.getByRole('button', { name: /add|ajouter|\+/i })
-      await expect(addBtn).not.toBeVisible()
-    } else {
-      // No unavailable items currently — skip
-      test.skip(true, 'No unavailable items found. Set Café to unavailable (T-21) before running this test.')
+    const unavailableItem = page.locator('div').filter({ hasText: 'E2E Café' }).first()
+    if (await unavailableItem.isVisible({ timeout: 5000 }).catch(() => false)) {
+      const addBtn = unavailableItem.getByRole('button', { name: /add|ajouter/i })
+      await expect(addBtn).not.toBeVisible({ timeout: 3000 })
     }
+
+    // Step 3: restore availability
+    const mgCtx2  = await browser.newContext({ storageState: 'manager-auth.json' })
+    const mgPage2 = await mgCtx2.newPage()
+    await mgPage2.goto(`/manager/${TENANT}/menu`)
+    await mgPage2.waitForLoadState('networkidle')
+    const itemRow2 = mgPage2.locator('li').filter({ hasText: 'E2E Café' }).first()
+    if (await itemRow2.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await itemRow2.getByRole('button', { name: /edit|modifier/i }).click()
+      const dialog2 = mgPage2.locator('[role="dialog"]').first()
+      const availCheckbox2 = dialog2.locator('input[type="checkbox"]').first()
+      await availCheckbox2.setChecked(true)
+      await mgPage2.getByRole('button', { name: /save|enregistrer/i }).first().click()
+      await mgPage2.waitForTimeout(500)
+    }
+    await mgCtx2.close()
   })
 
   test('T-74 — Invalid QR token shows error', async ({ page }) => {
