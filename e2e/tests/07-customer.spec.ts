@@ -109,11 +109,7 @@ test.describe.serial('Module 7 — Customer QR Ordering Flow', () => {
     // Add item to cart
     await addCafeToCart(page)
 
-    // Open cart and place order
-    const cartBtn = page.locator('button').filter({ hasText: /cart|panier|\d+ item/i }).first()
-      .or(page.locator('[class*="cart"] button, [class*="float"] button').first())
-    await cartBtn.click()
-
+    // Cart is auto-shown as fixed bottom bar — go directly to Place Order
     const placeOrderBtn = page.getByRole('button', { name: /place order|commander|submit/i })
     await expect(placeOrderBtn).toBeVisible({ timeout: 5000 })
     await placeOrderBtn.click()
@@ -139,8 +135,6 @@ test.describe.serial('Module 7 — Customer QR Ordering Flow', () => {
     await page1.goto(menuUrl)
     await addCafeToCart(page1)
 
-    const cartBtn = page1.locator('button').filter({ hasText: /cart|panier|\d+/i }).first()
-    await cartBtn.click()
     await page1.getByRole('button', { name: /place order|commander|submit/i }).click()
     await expect(page1.getByText(/pending|en attente/i).first()).toBeVisible({ timeout: 8000 })
 
@@ -168,8 +162,6 @@ test.describe.serial('Module 7 — Customer QR Ordering Flow', () => {
     await page.waitForLoadState('networkidle')
     await addCafeToCart(page)
 
-    const cartBtn = page.locator('button').filter({ hasText: /cart|panier|\d+/i }).first()
-    await cartBtn.click()
     await page.getByRole('button', { name: /place order|commander|submit/i }).click()
     await expect(page.getByText(/pending|en attente/i).first()).toBeVisible({ timeout: 8000 })
 
@@ -186,8 +178,6 @@ test.describe.serial('Module 7 — Customer QR Ordering Flow', () => {
     await page.waitForLoadState('networkidle')
     await addCafeToCart(page)
 
-    const cartBtn = page.locator('button').filter({ hasText: /cart|panier|\d+/i }).first()
-    await cartBtn.click()
     await page.getByRole('button', { name: /place order|commander|submit/i }).click()
     await expect(page.getByText(/pending|en attente/i).first()).toBeVisible({ timeout: 8000 })
 

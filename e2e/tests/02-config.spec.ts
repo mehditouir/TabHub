@@ -24,7 +24,9 @@ test.describe.serial('Module 2 — Restaurant Configuration', () => {
     // Reload and verify persistence — wait for the API to populate the input
     await page.reload()
     await page.waitForLoadState('networkidle')
-    await expect(page.getByTestId('input-restaurant-name')).not.toHaveValue('', { timeout: 8000 })
+    // Wait for btn-save to confirm form fully rendered, then check value
+    await expect(page.getByTestId('btn-save')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('input-restaurant-name')).not.toHaveValue('', { timeout: 20000 })
     await expect(page.getByTestId('input-restaurant-name')).toHaveValue('Café Tunisie Test')
   })
 

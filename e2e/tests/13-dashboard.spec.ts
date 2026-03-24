@@ -41,11 +41,11 @@ test.describe.serial('Module 13 — Manager Dashboard & Reports', () => {
     await page.waitForLoadState('networkidle')
     await page.getByTestId('tab-editor').click()
 
-    // Click first space in the list
+    // Click first space in the list — mandatory so table grid renders
     const firstSpace = page.locator('button').filter({ hasText: /terrasse|salle|espace/i }).first()
-    if (await firstSpace.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await firstSpace.click()
-    }
+    await expect(firstSpace).toBeVisible({ timeout: 5000 })
+    await firstSpace.click()
+    await page.waitForTimeout(500)
 
     // Click the first occupied table cell (title contains "Table")
     const occupiedCell = page.locator('button[title*="Table"]').first()

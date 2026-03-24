@@ -91,7 +91,7 @@ test.describe.serial('Module 21 — Super Admin Interface', () => {
     await nameInput.fill('Test Café')
     await page.getByRole('button', { name: /create tenant|add tenant/i }).click()
 
-    await expect(page.getByText(/testcafe.*created|success/i).or(page.getByText('testcafe'))).toBeVisible({ timeout: 8000 })
+    await expect(page.getByText(/testcafe.*created|success/i).or(page.getByText('testcafe')).first()).toBeVisible({ timeout: 8000 })
   })
 
   test('T-82 — Create a new manager and assign to tenant', async ({ page }) => {

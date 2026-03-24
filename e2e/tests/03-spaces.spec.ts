@@ -39,7 +39,7 @@ test.describe.serial('Module 3 — Spaces & Tables', () => {
     }
     await page.getByRole('button', { name: /save|create|enregistrer/i }).click()
 
-    await expect(page.getByText(SPACE_NAME, { exact: true })).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(SPACE_NAME, { exact: true }).first()).toBeVisible({ timeout: 5000 })
   })
 
   test('T-11 — Add tables to the grid', async ({ page }) => {

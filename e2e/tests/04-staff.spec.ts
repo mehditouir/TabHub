@@ -89,7 +89,8 @@ test.describe.serial('Module 4 — Staff Management', () => {
     const waiterSelect = page.locator('select').first()
     const waiterOption = waiterSelect.locator('option').filter({ hasText: /e2e ben waiter/i })
     if (await waiterOption.count() > 0) {
-      await waiterSelect.selectOption({ label: /e2e ben waiter/i })
+      const optionText = await waiterOption.first().textContent()
+      if (optionText) await waiterSelect.selectOption({ label: optionText.trim() })
     }
 
     // Drag a zone on the grid (first cell to second cell)

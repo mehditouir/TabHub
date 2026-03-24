@@ -37,11 +37,6 @@ test.describe.serial('Module 5 — Menu System', () => {
     await page.goto(`/manager/${TENANT}/menu`)
     await page.waitForLoadState('networkidle')
 
-    // Expand E2E Boissons category
-    const catHeader = page.getByText(CAT_NAME).first()
-    await catHeader.click()
-    await page.waitForTimeout(300)
-
     if (await page.getByText(ITEM_NAME).isVisible({ timeout: 2000 }).catch(() => false)) {
       await expect(page.getByText(ITEM_NAME)).toBeVisible()
       return
@@ -64,10 +59,6 @@ test.describe.serial('Module 5 — Menu System', () => {
     await page.goto(`/manager/${TENANT}/menu`)
     await page.waitForLoadState('networkidle')
 
-    // Expand E2E Boissons
-    await page.getByText(CAT_NAME).first().click()
-    await page.waitForTimeout(300)
-
     // Open edit modal for E2E Café
     const itemRow = page.locator('li').filter({ hasText: ITEM_NAME }).first()
     await itemRow.getByRole('button', { name: /edit|modifier/i }).click()
@@ -80,8 +71,6 @@ test.describe.serial('Module 5 — Menu System', () => {
     await page.waitForTimeout(500)
 
     // Toggle back
-    await page.getByText(CAT_NAME).first().click()
-    await page.waitForTimeout(300)
     const itemRow2 = page.locator('li').filter({ hasText: ITEM_NAME }).first()
     await itemRow2.getByRole('button', { name: /edit|modifier/i }).click()
     const dialog2 = page.locator('[role="dialog"]').first()
@@ -96,8 +85,6 @@ test.describe.serial('Module 5 — Menu System', () => {
   test('T-22 — Create a modifier group on an item', async ({ page }) => {
     await page.goto(`/manager/${TENANT}/menu`)
     await page.waitForLoadState('networkidle')
-    await page.getByText(CAT_NAME).first().click()
-    await page.waitForTimeout(300)
 
     // Click edit on E2E Café item
     const itemRow = page.locator('li').filter({ hasText: ITEM_NAME }).first()

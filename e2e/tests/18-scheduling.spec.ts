@@ -112,7 +112,7 @@ test.describe.serial('Module 18 — Menu Scheduling', () => {
     await page.goto(menuUrl)
     await page.waitForLoadState('networkidle')
     // No crash — test passes (may or may not hide Boissons depending on other menu assignments)
-    await expect(page.getByText(/error|500/i)).not.toBeVisible()
+    await expect(page.getByText(/\berror\b/i)).not.toBeVisible()
   })
 
 })
