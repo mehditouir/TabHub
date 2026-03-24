@@ -18,10 +18,10 @@ test.describe.serial('Module 14 — Tenant Isolation', () => {
 
     const testCatName = 'Isolation Test Cat'
     if (!(await page.getByText(testCatName).isVisible({ timeout: 1000 }).catch(() => false))) {
-      await page.getByRole('button', { name: /add category/i }).click()
+      await page.getByTestId('btn-add-category').click()
       const dialog = page.locator('[role="dialog"]').first()
-      await dialog.getByLabel(/name/i).fill(testCatName)
-      await page.getByRole('button', { name: /save|create/i }).click()
+      await dialog.getByTestId('input-cat-name').fill(testCatName)
+      await page.getByRole('button', { name: /save|create|enregistrer/i }).click()
       await expect(page.getByText(testCatName)).toBeVisible()
     }
 

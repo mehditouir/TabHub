@@ -76,7 +76,8 @@ export function CustomerMenu() {
   const [pageError, setPageError] = useState('')
 
   // Resolved table UUID (needed for SignalR group)
-  const [tableId, setTableId] = useState<string | null>(null)
+  const [tableId, setTableId]     = useState<string | null>(null)
+  const [tableError, setTableError] = useState('')
 
   // Cart
   const [cart, setCart]       = useState<CartItem[]>([])
@@ -122,7 +123,7 @@ export function CustomerMenu() {
     if (!tenant || !qrToken) return
     resolveTable(tenant, qrToken)
       .then(r => setTableId(r.tableId))
-      .catch(() => { /* no-op: shared cart unavailable, ordering still works */ })
+      .catch(() => setTableError(t('customer.invalidTable')))
   }, [tenant, qrToken])
 
   // ── Unified SignalR connection ──────────────────────────────────────────────
@@ -396,6 +397,12 @@ export function CustomerMenu() {
     <div className="mx-auto max-w-2xl px-4 py-6 pb-36">
       <h1 className="mb-1 text-2xl font-bold text-zinc-900">{menu?.tenant}</h1>
       <p className="mb-5 text-sm text-zinc-500">{t('customer.tagline')}</p>
+
+      {tableError && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
+          {tableError}
+        </div>
+      )}
 
       {qrToken && (
         <div className="flex gap-2 mb-6">

@@ -62,7 +62,7 @@ export function Dashboard() {
               { key: 'cancelled',  value: summary.cancelled,   color: 'red'    },
             ] as const
           ).map(({ key, value, color }) => (
-            <div key={key} className="rounded-xl border border-zinc-200 bg-white p-4 text-center">
+            <div key={key} data-testid="kpi-card" className="rounded-xl border border-zinc-200 bg-white p-4 text-center">
               <div className={`text-3xl font-bold text-${color}-600`}>{value}</div>
               <div className="mt-1 text-sm text-zinc-500">{t(`dashboard.${key}`)}</div>
             </div>
@@ -81,7 +81,7 @@ export function Dashboard() {
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Revenue (last 30 days) */}
         {revenue && (
-          <div className="rounded-xl border border-zinc-200 bg-white p-4">
+          <div data-testid="revenue-chart" className="rounded-xl border border-zinc-200 bg-white p-4">
             <h2 className="mb-1 font-semibold text-zinc-900">{t('dashboard.revenue30')}</h2>
             <p className="mb-4 text-3xl font-bold text-brand">{formatPrice(revenue.totalRevenue)}</p>
             <div className="flex items-end gap-1" style={{ height: 80 }}>

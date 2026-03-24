@@ -16,11 +16,11 @@ test.describe.serial('Module 13 — Manager Dashboard & Reports', () => {
     await page.waitForLoadState('networkidle')
 
     // KPI cards should be present (even if 0 value, they should render)
-    await expect(page.locator('[class*="kpi"], [class*="stat"], [class*="card"]').first()).toBeVisible({ timeout: 8000 })
+    await expect(page.locator('[data-testid="kpi-card"]').first()).toBeVisible({ timeout: 8000 })
 
     // Revenue chart should be present
     await expect(
-      page.locator('canvas, svg[class*="chart"], [class*="chart"], [class*="bar"]').first()
+      page.locator('[data-testid="revenue-chart"]').first()
     ).toBeVisible({ timeout: 5000 })
   })
 

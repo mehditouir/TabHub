@@ -127,7 +127,8 @@
     "statusReceived": "مُستلم",
     "statusPreparing": "قيد التحضير",
     "statusReady": "جاهز",
-    "statusServed": "تم التقديم!"
+    "statusServed": "تم التقديم!",
+    "invalidTable": "رمز QR للطاولة غير صالح أو غير نشط."
   },
   "config": {
     "title": "الإعدادات",

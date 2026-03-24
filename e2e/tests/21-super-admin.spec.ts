@@ -68,8 +68,8 @@ test.describe.serial('Module 21 — Super Admin Interface', () => {
     await tenantsTab.click()
 
     // cafetunisia and restauranttunisia should appear
-    await expect(page.getByText('cafetunisia')).toBeVisible({ timeout: 5000 })
-    await expect(page.getByText('restauranttunisia')).toBeVisible()
+    await expect(page.getByText('cafetunisia').first()).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText('restauranttunisia').first()).toBeVisible()
   })
 
   test('T-81 — Create a new tenant', async ({ page }) => {

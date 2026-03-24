@@ -127,7 +127,8 @@
     "statusReceived": "Received",
     "statusPreparing": "Preparing",
     "statusReady": "Ready",
-    "statusServed": "Served!"
+    "statusServed": "Served!",
+    "invalidTable": "Invalid or inactive table QR code."
   },
   "config": {
     "title": "Settings",
