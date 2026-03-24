@@ -16,21 +16,18 @@ test.describe.serial('Module 15 — Navigation & URL Structure', () => {
     await page.waitForLoadState('networkidle')
     await expect(page).toHaveURL(new RegExp(`/manager/${TENANT}/dashboard`))
 
-    // Menu
-    await page.getByRole('link', { name: /menu/i }).click()
+    // Use href-based selectors — nav link text is translated
+    await page.locator(`a[href*="/manager/${TENANT}/menu"]`).click()
     await expect(page).toHaveURL(new RegExp(`/manager/${TENANT}/menu`))
-    await expect(page.getByRole('link', { name: /menu/i })).toHaveClass(/bg-brand|active/)
+    await expect(page.locator(`a[href*="/manager/${TENANT}/menu"]`)).toHaveClass(/bg-brand|active/)
 
-    // Spaces
-    await page.getByRole('link', { name: /space/i }).click()
+    await page.locator(`a[href*="/manager/${TENANT}/spaces"]`).click()
     await expect(page).toHaveURL(new RegExp(`/manager/${TENANT}/spaces`))
 
-    // Staff
-    await page.getByRole('link', { name: /staff/i }).click()
+    await page.locator(`a[href*="/manager/${TENANT}/staff"]`).click()
     await expect(page).toHaveURL(new RegExp(`/manager/${TENANT}/staff`))
 
-    // Config
-    await page.getByRole('link', { name: /config|settings/i }).click()
+    await page.locator(`a[href*="/manager/${TENANT}/config"]`).click()
     await expect(page).toHaveURL(new RegExp(`/manager/${TENANT}/config`))
 
     // Each URL has the tenant slug
@@ -43,12 +40,10 @@ test.describe.serial('Module 15 — Navigation & URL Structure', () => {
 
     // Should load staff page directly — no redirect to dashboard
     await expect(page).toHaveURL(new RegExp(`/manager/${TENANT}/staff`))
-    await expect(page.getByRole('button', { name: /add staff/i })).toBeVisible({ timeout: 5000 })
+    await expect(page.getByTestId('btn-new-staff')).toBeVisible({ timeout: 5000 })
   })
 
   test('T-64 — All staff and public app URLs load correctly', async ({ page }) => {
-    const BASE = process.env.BASE_URL ?? 'https://ashy-grass-0c75bb903.6.azurestaticapps.net'
-
     const routes = [
       { url: `/waiter/${TENANT}`,   expect: /pin|sign in|serveur/i },
       { url: `/kitchen/${TENANT}`,  expect: /pin|sign in|cuisine/i },

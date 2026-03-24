@@ -13,8 +13,8 @@ function decodeToken(token: string): AuthUser | null {
   try {
     const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))
     return {
-      email:       payload.sub,
-      displayName: payload.display_name ?? payload.sub,
+      email:       payload.email ?? payload.sub,
+      displayName: payload.name  ?? payload.email ?? payload.sub,
       role:        payload.role,
       tenantId:    payload.tenant_id,
       tenant:      localStorage.getItem(TENANT_KEY) ?? '',

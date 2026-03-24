@@ -57,6 +57,7 @@ function CategoryFormModal({ initial, onSave, onClose }: CategoryFormModalProps)
         <label className="flex flex-col gap-1 text-sm">
           {t('common.name')}
           <input
+            data-testid="input-cat-name"
             className={inputCls}
             value={name} onChange={e => setName(e.target.value)}
             required maxLength={100} autoFocus
@@ -167,6 +168,7 @@ function MenuItemFormModal({ initial, categoryId, categories, onSave, onDelete, 
         <label className="flex flex-col gap-1 text-sm">
           {t('common.name')}
           <input
+            data-testid="input-item-name"
             className={inputCls}
             value={name} onChange={e => setName(e.target.value)}
             required maxLength={150} autoFocus={!initial}
@@ -175,7 +177,7 @@ function MenuItemFormModal({ initial, categoryId, categories, onSave, onDelete, 
 
         <label className="flex flex-col gap-1 text-sm">
           {t('menu.price')}
-          <input type="number" min={0} step={0.01} className={inputCls}
+          <input data-testid="input-item-price" type="number" min={0} step={0.01} className={inputCls}
             value={price} onChange={e => setPrice(Number(e.target.value))} required />
         </label>
 
@@ -357,6 +359,7 @@ export function Menu() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-zinc-900">{t('menu.title')}</h1>
         <button
+          data-testid="btn-add-category"
           onClick={() => setCategoryModal('create')}
           className="rounded-lg bg-brand px-4 py-2 text-sm text-white hover:bg-brand/80"
         >
@@ -394,6 +397,7 @@ export function Menu() {
 
                   <div className="flex shrink-0 gap-2">
                     <button
+                      data-testid="btn-add-item"
                       onClick={() => setItemModal({ categoryId: cat.id })}
                       className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100"
                     >

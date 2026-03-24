@@ -73,6 +73,7 @@ export function ManagerLayout() {
           <p className="truncate text-xs text-zinc-500">{user?.email}</p>
           <button
             onClick={handleLogout}
+            data-testid="logout-btn"
             className="mt-1 text-xs text-red-500 hover:underline"
           >
             {t('common.signOut')}

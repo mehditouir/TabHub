@@ -85,6 +85,7 @@ export function Config() {
         <label className="flex flex-col gap-1 text-sm">
           {t('config.restaurantName')}
           <input
+            data-testid="input-restaurant-name"
             className={inputCls}
             value={restaurantName}
             onChange={e => setRestaurantName(e.target.value)}
@@ -95,6 +96,7 @@ export function Config() {
         <label className="flex flex-col gap-1 text-sm">
           {t('config.tvaRate')}
           <input
+            data-testid="input-tva-rate"
             type="number" min={0} max={100} step={0.01}
             className={inputCls}
             value={tvaRate}
@@ -163,6 +165,7 @@ export function Config() {
       <div className="flex items-center gap-4">
         <button
           type="submit"
+          data-testid="btn-save"
           disabled={saving}
           className="rounded-lg bg-brand px-6 py-2 text-sm text-white disabled:opacity-60 hover:bg-brand/80"
         >

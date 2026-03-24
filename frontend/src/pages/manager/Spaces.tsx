@@ -646,6 +646,7 @@ export function Spaces() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-zinc-900">{t('spaces.title')}</h1>
         <button
+          data-testid="btn-new-space"
           onClick={() => setSpaceModal('create')}
           className="rounded-lg bg-brand px-4 py-2 text-sm text-white hover:bg-brand/80">
           {t('spaces.newSpace')}
@@ -702,7 +703,7 @@ export function Spaces() {
               {/* Tabs */}
               <div className="mb-4 flex gap-1 border-b border-zinc-100">
                 {TABS.map(tab => (
-                  <button key={tab.key} onClick={() => setActiveTab(tab.key)}
+                  <button key={tab.key} data-testid={} onClick={() => setActiveTab(tab.key)}
                     className={[
                       'px-4 py-2 text-sm font-medium transition-colors',
                       activeTab === tab.key

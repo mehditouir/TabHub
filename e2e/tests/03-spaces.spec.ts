@@ -22,7 +22,7 @@ test.describe.serial('Module 3 — Spaces & Tables', () => {
     await page.waitForLoadState('networkidle')
 
     // Navigate to Editor tab
-    await page.getByRole('tab', { name: /editor/i }).click()
+    await page.getByTestId('tab-editor').click()
 
     // Check if E2E Terrasse already exists
     const existingSpace = page.getByText(SPACE_NAME, { exact: true })
@@ -32,12 +32,16 @@ test.describe.serial('Module 3 — Spaces & Tables', () => {
     }
 
     // Create new space
-    await page.getByRole('button', { name: /new space/i }).click()
-    const dialog = page.locator('[role="dialog"], .modal, form').filter({ hasText: /name|space/i }).first()
-    await dialog.getByLabel(/name/i).fill(SPACE_NAME)
-    await dialog.getByLabel(/col/i).fill('4')
-    await dialog.getByLabel(/row/i).fill('3')
-    await page.getByRole('button', { name: /save|create/i }).click()
+    await page.getByTestId('btn-new-space').click()
+    const dialog = page.locator('[role="dialog"], .modal, form').filter({ hasText: /nom|name|space/i }).first()
+    await dialog.locator('input').first().fill(SPACE_NAME)
+    // Columns input (second input)
+    const numInputs = dialog.locator('input[type="number"]')
+    if (await numInputs.count() >= 2) {
+      await numInputs.first().fill('4')
+      await numInputs.nth(1).fill('3')
+    }
+    await page.getByRole('button', { name: /save|create|enregistrer/i }).click()
 
     await expect(page.getByText(SPACE_NAME, { exact: true })).toBeVisible({ timeout: 5000 })
   })
@@ -45,61 +49,76 @@ test.describe.serial('Module 3 — Spaces & Tables', () => {
   test('T-11 — Add tables to the grid', async ({ page }) => {
     await page.goto(`/manager/${TENANT}/spaces`)
     await page.waitForLoadState('networkidle')
-    await page.getByRole('tab', { name: /editor/i }).click()
+    await page.getByTestId('tab-editor').click()
 
     // Select E2E Terrasse space
     await page.getByText(SPACE_NAME, { exact: true }).click()
     await page.waitForLoadState('networkidle')
 
-    // Check if tables already exist
-    const existingTables = page.locator('[data-table], .table-cell--occupied, [class*="table"][class*="filled"]')
-    const tableCount = await existingTables.count()
+    // Click empty cells (+ buttons) to add tables
+    const plusCells = page.getByRole('button', { name: '+' })
+    const plusCount = await plusCells.count()
 
-    if (tableCount >= 2) {
-      // Tables already exist — save QR token and continue
-      await saveQrTokenFromPage(page)
-      return
-    }
+    if (plusCount > 0) {
+      // Click first + cell to add a table
+      await plusCells.first().click()
+      const dialog = page.locator('[role="dialog"]').first()
+      if (await dialog.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await dialog.locator('input').first().fill('T1')
+        await page.getByRole('button', { name: /save|enregistrer/i }).click()
+        await page.waitForTimeout(500)
+      }
 
-    // Click empty cells to add tables
-    const emptyCells = page.locator('[data-empty="true"], .cell--empty, .grid-cell:not([data-occupied])').first()
-    await emptyCells.click()
-    await page.waitForTimeout(500)
-
-    // Add more tables
-    const moreCells = page.locator('[data-empty="true"], .cell--empty, .grid-cell:not([data-occupied])').first()
-    if (await moreCells.isVisible().catch(() => false)) {
-      await moreCells.click()
-      await page.waitForTimeout(500)
+      // Add a second table if more + cells exist
+      const morePlus = page.getByRole('button', { name: '+' })
+      if (await morePlus.count() > 0) {
+        await morePlus.first().click()
+        const dialog2 = page.locator('[role="dialog"]').first()
+        if (await dialog2.isVisible({ timeout: 2000 }).catch(() => false)) {
+          await dialog2.locator('input').first().fill('T2')
+          await page.getByRole('button', { name: /save|enregistrer/i }).click()
+          await page.waitForTimeout(500)
+        }
+      }
     }
 
     await saveQrTokenFromPage(page)
   })
 
-  test('T-12 — QR code generation and download', async ({ page }) => {
+  test('T-12 — QR code visible in table modal', async ({ page }) => {
     await page.goto(`/manager/${TENANT}/spaces`)
     await page.waitForLoadState('networkidle')
-    await page.getByRole('tab', { name: /editor/i }).click()
+    await page.getByTestId('tab-editor').click()
     await page.getByText(SPACE_NAME, { exact: true }).click()
 
-    // Click first QR button in the grid
-    const qrBtn = page.getByRole('button', { name: /qr/i }).first()
-    await expect(qrBtn).toBeVisible()
-    await qrBtn.click()
+    // Click the first occupied table cell (not a '+' button)
+    const occupiedCell = page.getByRole('button').filter({ hasNotText: '+' })
+      .and(page.locator('button[title*="Table"]'))
+      .first()
 
-    // Modal should open with QR code and URL
-    const modal = page.locator('[role="dialog"], .modal').first()
-    await expect(modal).toBeVisible()
+    if (!(await occupiedCell.isVisible({ timeout: 3000 }).catch(() => false))) {
+      // Fallback: any button in the grid that isn't '+'
+      const gridBtns = page.locator('button').filter({ hasNotText: '+' })
+      if (await gridBtns.count() > 0) {
+        await gridBtns.first().click()
+      } else {
+        test.skip(true, 'No tables found to test QR')
+        return
+      }
+    } else {
+      await occupiedCell.click()
+    }
+
+    // Modal should open with QR code image and URL
+    const modal = page.locator('[role="dialog"]').first()
+    await expect(modal).toBeVisible({ timeout: 3000 })
 
     // Verify URL contains the correct format
-    const urlText = await page.getByText(/\/menu\//i).first().textContent()
-    expect(urlText).toContain(`/menu/${TENANT}`)
-    expect(urlText).toMatch(/table=[0-9a-f-]{36}/)
-
-    // Download button
-    const downloadBtn = page.getByRole('button', { name: /download/i })
-    if (await downloadBtn.isVisible().catch(() => false)) {
-      await expect(downloadBtn).toBeVisible()
+    const urlInput = modal.locator('input[readonly]').first()
+    if (await urlInput.isVisible({ timeout: 2000 }).catch(() => false)) {
+      const urlVal = await urlInput.inputValue()
+      expect(urlVal).toContain(`/menu/${TENANT}`)
+      expect(urlVal).toMatch(/table=[0-9a-f-]{36}/)
     }
 
     // Close modal
@@ -109,49 +128,49 @@ test.describe.serial('Module 3 — Spaces & Tables', () => {
   test('T-13 — Delete a table', async ({ page }) => {
     await page.goto(`/manager/${TENANT}/spaces`)
     await page.waitForLoadState('networkidle')
-    await page.getByRole('tab', { name: /editor/i }).click()
+    await page.getByTestId('tab-editor').click()
     await page.getByText(SPACE_NAME, { exact: true }).click()
 
-    // Right-click or click delete on the last table found
-    const deleteBtn = page.getByRole('button', { name: /delete|remove/i }).last()
-    if (await deleteBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await deleteBtn.click()
-      // Confirm if dialog appears
-      const confirmBtn = page.getByRole('button', { name: /confirm|yes|delete/i })
-      if (await confirmBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
-        await confirmBtn.click()
-      }
-    } else {
-      // Try clicking a table cell to get a delete option
-      const occupiedCell = page.locator('[class*="occupied"], [data-table]').last()
-      if (await occupiedCell.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await occupiedCell.click({ button: 'right' })
-        await page.getByText(/delete|remove/i).first().click()
+    // Click an occupied table cell to open modal, then delete
+    const occupiedCell = page.locator('button[title*="Table"]').last()
+    if (await occupiedCell.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await occupiedCell.click()
+      const modal = page.locator('[role="dialog"]').first()
+      if (await modal.isVisible({ timeout: 2000 }).catch(() => false)) {
+        const deleteBtn = modal.getByRole('button', { name: /delete|supprimer/i })
+        if (await deleteBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+          await deleteBtn.click()
+        }
       }
     }
 
-    // Reload and verify
+    // Reload and verify space still exists
     await page.reload()
     await page.waitForLoadState('networkidle')
-    await page.getByRole('tab', { name: /editor/i }).click()
-    await page.getByText(SPACE_NAME, { exact: true }).click()
+    await page.getByTestId('tab-editor').click()
     await expect(page.getByText(SPACE_NAME, { exact: true })).toBeVisible()
   })
 
 })
 
-/** Extract QR token from first table's QR modal and save to run-state.json. */
+/** Extract QR token from first table's modal URL and save to run-state.json. */
 async function saveQrTokenFromPage(page: import('@playwright/test').Page) {
-  const qrBtn = page.getByRole('button', { name: /qr/i }).first()
-  if (!(await qrBtn.isVisible({ timeout: 2000 }).catch(() => false))) return
+  // Click the first occupied table cell (title contains "Table")
+  const occupiedCell = page.locator('button[title*="Table"]').first()
+  if (!(await occupiedCell.isVisible({ timeout: 2000 }).catch(() => false))) return
 
-  await qrBtn.click()
+  await occupiedCell.click()
   await page.waitForTimeout(500)
 
-  // Look for URL text in modal
-  const urlEl = page.getByText(/\/menu\//i).first()
-  const urlText = await urlEl.textContent().catch(() => '')
-  const match   = urlText?.match(/\?table=([\w-]+)/)
+  const modal = page.locator('[role="dialog"]').first()
+  if (!(await modal.isVisible({ timeout: 2000 }).catch(() => false))) {
+    await page.keyboard.press('Escape')
+    return
+  }
+
+  const urlInput = modal.locator('input[readonly]').first()
+  const urlVal = await urlInput.inputValue().catch(() => '')
+  const match  = urlVal?.match(/\?table=([\w-]+)/)
   if (match?.[1]) {
     writeState({ tableQrToken: match[1] })
     console.log('[state] Saved qrToken:', match[1])

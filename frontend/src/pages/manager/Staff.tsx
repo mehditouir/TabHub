@@ -65,6 +65,7 @@ function StaffFormModal({ initial, onSave, onDelete, onClose }: StaffFormModalPr
         <label className="flex flex-col gap-1 text-sm">
           {t('staff.displayName')}
           <input
+            data-testid="input-staff-name"
             className={inputCls}
             value={displayName} onChange={e => setDisplayName(e.target.value)}
             required maxLength={100} autoFocus
@@ -73,7 +74,7 @@ function StaffFormModal({ initial, onSave, onDelete, onClose }: StaffFormModalPr
 
         <label className="flex flex-col gap-1 text-sm">
           {t('staff.role')}
-          <select className={inputCls} value={role} onChange={e => setRole(e.target.value)}>
+          <select data-testid="select-staff-role" className={inputCls} value={role} onChange={e => setRole(e.target.value)}>
             {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
           </select>
         </label>
@@ -82,6 +83,7 @@ function StaffFormModal({ initial, onSave, onDelete, onClose }: StaffFormModalPr
           {t('staff.pin')} {initial ? t('staff.pinEdit') : t('staff.pinNew')}
           <input
             type="password"
+            data-testid="input-staff-pin"
             className={inputCls}
             value={pin} onChange={e => setPin(e.target.value.replace(/\D/g, '').slice(0, 8))}
             placeholder={initial ? '••••' : ''}
@@ -182,6 +184,7 @@ export function Staff() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-zinc-900">{t('staff.title')}</h1>
         <button
+          data-testid="btn-new-staff"
           onClick={() => setModal('create')}
           className="rounded-lg bg-brand px-4 py-2 text-sm text-white hover:bg-brand/80"
         >
@@ -197,7 +200,7 @@ export function Staff() {
       ) : (
         <div className="rounded-xl border border-zinc-200 bg-white divide-y divide-zinc-100">
           {staff.map(member => (
-            <div key={member.id} className="flex items-center gap-4 px-5 py-4">
+            <div key={member.id} data-testid="staff-item" className="flex items-center gap-4 px-5 py-4">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-zinc-900">{member.displayName}</span>
@@ -208,6 +211,7 @@ export function Staff() {
               </div>
               <RoleBadge role={member.role} />
               <button
+                data-testid="btn-edit-staff"
                 onClick={() => setModal(member)}
                 className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100"
               >

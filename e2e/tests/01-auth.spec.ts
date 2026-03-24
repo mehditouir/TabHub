@@ -19,8 +19,8 @@ test.describe.serial('Module 1 — Manager Authentication', () => {
     await page.getByRole('button', { name: 'Sign in' }).click()
 
     await page.waitForURL(`**/manager/${TENANT}/dashboard`)
-    await expect(page.getByRole('link', { name: /dashboard/i })).toBeVisible()
-    await expect(page.getByRole('link', { name: /menu/i })).toBeVisible()
+    await expect(page.locator(`a[href*="/dashboard"]`)).toBeVisible()
+    await expect(page.locator(`a[href*="/menu"]`)).toBeVisible()
     await expect(page.getByText(EMAIL)).toBeVisible()
   })
 
@@ -64,7 +64,7 @@ test.describe.serial('Module 1 — Manager Authentication', () => {
     await page.waitForURL(`**/manager/${TENANT}/dashboard`)
 
     // Sign out
-    await page.getByRole('button', { name: /sign out/i }).click()
+    await page.getByTestId('logout-btn').click()
     await expect(page).toHaveURL(/\/login/)
 
     // Navigate back — should redirect again

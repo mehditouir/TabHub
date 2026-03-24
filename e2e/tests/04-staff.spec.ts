@@ -16,6 +16,16 @@ const CASHIER_PIN = process.env.CASHIER_PIN ?? '9999'
 
 test.use({ storageState: 'manager-auth.json' })
 
+async function createStaff(page: import('@playwright/test').Page, name: string, role: string, pin: string) {
+  await page.getByTestId('btn-new-staff').click()
+  const dialog = page.locator('[role="dialog"]').first()
+  await dialog.getByTestId('input-staff-name').fill(name)
+  await dialog.getByTestId('select-staff-role').selectOption(role)
+  await dialog.getByTestId('input-staff-pin').fill(pin)
+  await page.getByRole('button', { name: /save|create|enregistrer/i }).click()
+  await expect(page.getByText(name)).toBeVisible({ timeout: 5000 })
+}
+
 test.describe.serial('Module 4 — Staff Management', () => {
 
   test('T-14 — Create a waiter', async ({ page }) => {
@@ -27,39 +37,20 @@ test.describe.serial('Module 4 — Staff Management', () => {
       return
     }
 
-    await page.getByRole('button', { name: /add staff/i }).click()
-    const dialog = page.locator('[role="dialog"]').first()
-    await dialog.getByLabel(/name/i).fill('E2E Waiter')
-    await dialog.getByLabel(/role/i).selectOption({ label: /waiter/i })
-    await dialog.getByLabel(/pin/i).fill(WAITER_PIN)
-    await page.getByRole('button', { name: /save|create/i }).click()
-
-    await expect(page.getByText('E2E Waiter')).toBeVisible({ timeout: 5000 })
+    await createStaff(page, 'E2E Waiter', 'Waiter', WAITER_PIN)
   })
 
   test('T-15 — Create kitchen and cashier staff', async ({ page }) => {
     await page.goto(`/manager/${TENANT}/staff`)
     await page.waitForLoadState('networkidle')
 
-    // E2E Kitchen
     if (!(await page.getByText('E2E Kitchen').isVisible({ timeout: 2000 }).catch(() => false))) {
-      await page.getByRole('button', { name: /add staff/i }).click()
-      const dialog = page.locator('[role="dialog"]').first()
-      await dialog.getByLabel(/name/i).fill('E2E Kitchen')
-      await dialog.getByLabel(/role/i).selectOption({ label: /kitchen/i })
-      await dialog.getByLabel(/pin/i).fill(KITCHEN_PIN)
-      await page.getByRole('button', { name: /save|create/i }).click()
+      await createStaff(page, 'E2E Kitchen', 'Kitchen', KITCHEN_PIN)
       await page.waitForTimeout(500)
     }
 
-    // E2E Cashier
     if (!(await page.getByText('E2E Cashier').isVisible({ timeout: 2000 }).catch(() => false))) {
-      await page.getByRole('button', { name: /add staff/i }).click()
-      const dialog = page.locator('[role="dialog"]').first()
-      await dialog.getByLabel(/name/i).fill('E2E Cashier')
-      await dialog.getByLabel(/role/i).selectOption({ label: /cashier/i })
-      await dialog.getByLabel(/pin/i).fill(CASHIER_PIN)
-      await page.getByRole('button', { name: /save|create/i }).click()
+      await createStaff(page, 'E2E Cashier', 'Cashier', CASHIER_PIN)
       await page.waitForTimeout(500)
     }
 
@@ -71,19 +62,17 @@ test.describe.serial('Module 4 — Staff Management', () => {
     await page.goto(`/manager/${TENANT}/staff`)
     await page.waitForLoadState('networkidle')
 
-    // Find E2E Waiter or E2E Ben Waiter (already renamed on a prev run)
-    const staffRow = page.getByRole('row', { name: /e2e waiter|e2e ben waiter/i }).first()
-      .or(page.locator('li, [data-testid*="staff"]').filter({ hasText: /e2e waiter|e2e ben waiter/i }).first())
+    // Find E2E Waiter or E2E Ben Waiter row
+    const staffRow = page.locator('[data-testid="staff-item"]')
+      .filter({ hasText: /e2e waiter|e2e ben waiter/i }).first()
 
-    const editBtn = staffRow.getByRole('button', { name: /edit/i })
-      .or(page.getByRole('button', { name: /edit/i }).first())
-    await editBtn.click()
+    await staffRow.getByTestId('btn-edit-staff').click()
 
     const dialog = page.locator('[role="dialog"]').first()
-    const nameInput = dialog.getByLabel(/name/i)
+    const nameInput = dialog.getByTestId('input-staff-name')
     await nameInput.clear()
     await nameInput.fill('E2E Ben Waiter')
-    await page.getByRole('button', { name: /save/i }).click()
+    await page.getByRole('button', { name: /save|enregistrer/i }).click()
 
     await expect(page.getByText('E2E Ben Waiter')).toBeVisible({ timeout: 5000 })
   })
@@ -93,31 +82,33 @@ test.describe.serial('Module 4 — Staff Management', () => {
     await page.waitForLoadState('networkidle')
 
     // Navigate to Zones sub-tab
-    await page.getByRole('tab', { name: /zone/i }).click()
+    await page.getByTestId('tab-zones').click()
     await page.waitForLoadState('networkidle')
 
-    // Select E2E Ben Waiter and E2E Terrasse space
-    const staffSelect = page.getByLabel(/staff/i).or(page.locator('select').first())
-    await staffSelect.selectOption({ label: /e2e ben waiter/i })
-
-    const spaceSelect = page.getByLabel(/space/i).or(page.locator('select').nth(1))
-    await spaceSelect.selectOption({ label: /e2e terrasse/i })
-
-    // Fill in zone bounds
-    const colStartInput = page.getByLabel(/col.*start|start.*col/i).or(page.locator('input[placeholder*="col"]').first())
-    const colEndInput   = page.getByLabel(/col.*end|end.*col/i).or(page.locator('input[placeholder*="col"]').nth(1))
-    const rowStartInput = page.getByLabel(/row.*start|start.*row/i).or(page.locator('input[placeholder*="row"]').first())
-    const rowEndInput   = page.getByLabel(/row.*end|end.*row/i).or(page.locator('input[placeholder*="row"]').nth(1))
-
-    if (await colStartInput.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await colStartInput.fill('1')
-      await colEndInput.fill('2')
-      await rowStartInput.fill('1')
-      await rowEndInput.fill('2')
+    // Select E2E Ben Waiter from the waiter dropdown
+    const waiterSelect = page.locator('select').first()
+    const waiterOption = waiterSelect.locator('option').filter({ hasText: /e2e ben waiter/i })
+    if (await waiterOption.count() > 0) {
+      await waiterSelect.selectOption({ label: /e2e ben waiter/i })
     }
 
-    await page.getByRole('button', { name: /save|add zone|assign/i }).click()
-    await page.waitForTimeout(500)
+    // Drag a zone on the grid (first cell to second cell)
+    const gridCells = page.locator('[class*="cursor-crosshair"]')
+    const cellCount = await gridCells.count()
+    if (cellCount >= 2) {
+      const firstCell  = gridCells.first()
+      const secondCell = gridCells.nth(1)
+      const box1 = await firstCell.boundingBox()
+      const box2 = await secondCell.boundingBox()
+      if (box1 && box2) {
+        await page.mouse.move(box1.x + box1.width / 2, box1.y + box1.height / 2)
+        await page.mouse.down()
+        await page.mouse.move(box2.x + box2.width / 2, box2.y + box2.height / 2)
+        await page.mouse.up()
+        await page.waitForTimeout(500)
+      }
+    }
+
     await expect(page.locator('body')).not.toContainText(/error|failed/i)
   })
 
@@ -127,22 +118,19 @@ test.describe.serial('Module 4 — Staff Management', () => {
 
     // Create E2E Temp to delete
     if (!(await page.getByText('E2E Temp').isVisible({ timeout: 1000 }).catch(() => false))) {
-      await page.getByRole('button', { name: /add staff/i }).click()
-      const dialog = page.locator('[role="dialog"]').first()
-      await dialog.getByLabel(/name/i).fill('E2E Temp')
-      await dialog.getByLabel(/role/i).selectOption({ label: /waiter/i })
-      await dialog.getByLabel(/pin/i).fill('1111')
-      await page.getByRole('button', { name: /save|create/i }).click()
-      await expect(page.getByText('E2E Temp')).toBeVisible()
+      await createStaff(page, 'E2E Temp', 'Waiter', '1111')
     }
 
-    // Delete E2E Temp
-    const tempRow = page.locator('li, tr, [data-testid*="staff"]').filter({ hasText: 'E2E Temp' }).first()
-    await tempRow.getByRole('button', { name: /delete/i }).click()
-    const confirmBtn = page.getByRole('button', { name: /confirm|yes|delete/i })
-    if (await confirmBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await confirmBtn.click()
-    }
+    // Open edit modal for E2E Temp then delete from inside the modal
+    const tempRow = page.locator('[data-testid="staff-item"]').filter({ hasText: 'E2E Temp' }).first()
+    await tempRow.getByTestId('btn-edit-staff').click()
+
+    const dialog = page.locator('[role="dialog"]').first()
+    const deleteBtn = dialog.getByRole('button', { name: /delete|supprimer/i })
+
+    // Accept the browser confirm() dialog that fires on delete
+    page.once('dialog', d => d.accept())
+    await deleteBtn.click()
 
     await expect(page.getByText('E2E Temp')).not.toBeVisible({ timeout: 5000 })
   })

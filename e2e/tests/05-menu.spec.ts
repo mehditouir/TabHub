@@ -25,14 +25,10 @@ test.describe.serial('Module 5 — Menu System', () => {
       return
     }
 
-    await page.getByRole('button', { name: /add category/i }).click()
+    await page.getByTestId('btn-add-category').click()
     const dialog = page.locator('[role="dialog"]').first()
-    await dialog.getByLabel(/name/i).fill(CAT_NAME)
-    const sortInput = dialog.getByLabel(/sort/i)
-    if (await sortInput.isVisible({ timeout: 500 }).catch(() => false)) {
-      await sortInput.fill('99')
-    }
-    await page.getByRole('button', { name: /save|create/i }).click()
+    await dialog.getByTestId('input-cat-name').fill(CAT_NAME)
+    await page.getByRole('button', { name: /save|create|enregistrer/i }).click()
 
     await expect(page.getByText(CAT_NAME)).toBeVisible({ timeout: 5000 })
   })
@@ -51,15 +47,15 @@ test.describe.serial('Module 5 — Menu System', () => {
       return
     }
 
-    await page.getByRole('button', { name: /add item/i }).click()
+    await page.getByTestId('btn-add-item').first().click()
     const dialog = page.locator('[role="dialog"]').first()
-    await dialog.getByLabel(/name/i).fill(ITEM_NAME)
-    await dialog.getByLabel(/price/i).fill('3.500')
-    const descInput = dialog.getByLabel(/desc/i)
+    await dialog.getByTestId('input-item-name').fill(ITEM_NAME)
+    await dialog.getByTestId('input-item-price').fill('3.5')
+    const descInput = dialog.locator('textarea').first()
     if (await descInput.isVisible({ timeout: 500 }).catch(() => false)) {
       await descInput.fill('Espresso serré — créé par E2E tests')
     }
-    await page.getByRole('button', { name: /save|create/i }).click()
+    await page.getByRole('button', { name: /save|create|enregistrer/i }).click()
 
     await expect(page.getByText(ITEM_NAME)).toBeVisible({ timeout: 5000 })
   })
@@ -72,16 +68,26 @@ test.describe.serial('Module 5 — Menu System', () => {
     await page.getByText(CAT_NAME).first().click()
     await page.waitForTimeout(300)
 
-    // Find E2E Café row and toggle availability off
-    const itemRow = page.locator('li, tr, [data-testid*="item"]').filter({ hasText: ITEM_NAME }).first()
-    const toggleBtn = itemRow.getByRole('button', { name: /unavailable|toggle|available/i })
-      .or(itemRow.locator('input[type="checkbox"], button[class*="toggle"]').first())
-    await toggleBtn.click()
+    // Open edit modal for E2E Café
+    const itemRow = page.locator('li').filter({ hasText: ITEM_NAME }).first()
+    await itemRow.getByRole('button', { name: /edit|modifier/i }).click()
 
+    const dialog = page.locator('[role="dialog"]').first()
+    const availCheckbox = dialog.locator('input[type="checkbox"]').first()
+    const wasChecked = await availCheckbox.isChecked()
+    await availCheckbox.setChecked(!wasChecked)
+    await page.getByRole('button', { name: /save|enregistrer/i }).click()
     await page.waitForTimeout(500)
 
-    // Toggle back to available
-    await toggleBtn.click()
+    // Toggle back
+    await page.getByText(CAT_NAME).first().click()
+    await page.waitForTimeout(300)
+    const itemRow2 = page.locator('li').filter({ hasText: ITEM_NAME }).first()
+    await itemRow2.getByRole('button', { name: /edit|modifier/i }).click()
+    const dialog2 = page.locator('[role="dialog"]').first()
+    const availCheckbox2 = dialog2.locator('input[type="checkbox"]').first()
+    await availCheckbox2.setChecked(wasChecked)
+    await page.getByRole('button', { name: /save|enregistrer/i }).click()
     await page.waitForTimeout(500)
 
     await expect(page.getByText(ITEM_NAME)).toBeVisible()
@@ -94,8 +100,8 @@ test.describe.serial('Module 5 — Menu System', () => {
     await page.waitForTimeout(300)
 
     // Click edit on E2E Café item
-    const itemRow = page.locator('li, tr, [data-testid*="item"]').filter({ hasText: ITEM_NAME }).first()
-    await itemRow.getByRole('button', { name: /edit/i }).click()
+    const itemRow = page.locator('li').filter({ hasText: ITEM_NAME }).first()
+    await itemRow.getByRole('button', { name: /edit|modifier/i }).click()
 
     const dialog = page.locator('[role="dialog"]').first()
 
@@ -124,7 +130,7 @@ test.describe.serial('Module 5 — Menu System', () => {
       }
     }
 
-    await page.getByRole('button', { name: /save/i }).click()
+    await page.getByRole('button', { name: /save|enregistrer/i }).click()
     await page.waitForTimeout(500)
   })
 
@@ -143,8 +149,8 @@ test.describe.serial('Module 5 — Menu System', () => {
     if (!(await page.getByText('E2E Lait').isVisible({ timeout: 2000 }).catch(() => false))) {
       await page.getByRole('button', { name: /add ingredient/i }).click()
       const dialog = page.locator('[role="dialog"]').first()
-      await dialog.getByLabel(/name/i).fill('E2E Lait')
-      await page.getByRole('button', { name: /save|create/i }).click()
+      await dialog.locator('input').first().fill('E2E Lait')
+      await page.getByRole('button', { name: /save|create|enregistrer/i }).click()
       await expect(page.getByText('E2E Lait')).toBeVisible({ timeout: 5000 })
     } else {
       await expect(page.getByText('E2E Lait')).toBeVisible()

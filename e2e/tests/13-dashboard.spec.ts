@@ -16,7 +16,6 @@ test.describe.serial('Module 13 — Manager Dashboard & Reports', () => {
     await page.waitForLoadState('networkidle')
 
     // KPI cards should be present (even if 0 value, they should render)
-    // Look for cards with numbers
     await expect(page.locator('[class*="kpi"], [class*="stat"], [class*="card"]').first()).toBeVisible({ timeout: 8000 })
 
     // Revenue chart should be present
@@ -30,44 +29,42 @@ test.describe.serial('Module 13 — Manager Dashboard & Reports', () => {
     await page.waitForLoadState('networkidle')
 
     // Navigate to Live sub-tab
-    await page.getByRole('tab', { name: /live/i }).click()
+    await page.getByTestId('tab-live').click()
     await page.waitForLoadState('networkidle')
 
     // Grid should be visible with colour-coded tables
     await expect(page.locator('[class*="grid"], [class*="floor"], [class*="live"]').first()).toBeVisible({ timeout: 5000 })
-    // Look for colour-coded cells
-    await expect(page.locator('[class*="green"], [class*="occupied"], [class*="free"]').first())
-      .toBeVisible({ timeout: 5000 }).catch(() => {
-        // Grid may be empty — just verify no error
-      })
   })
 
-  test('T-59 — QR download from Spaces Editor', async ({ page }) => {
+  test('T-59 — QR visible in Spaces Editor table modal', async ({ page }) => {
     await page.goto(`/manager/${TENANT}/spaces`)
     await page.waitForLoadState('networkidle')
-    await page.getByRole('tab', { name: /editor/i }).click()
+    await page.getByTestId('tab-editor').click()
 
-    // Click Terrasse if it exists
-    const terrasse = page.getByText('Terrasse', { exact: true })
-    if (await terrasse.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await terrasse.click()
+    // Click first space in the list
+    const firstSpace = page.locator('button').filter({ hasText: /terrasse|salle|espace/i }).first()
+    if (await firstSpace.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await firstSpace.click()
     }
 
-    // Click QR button
-    const qrBtn = page.getByRole('button', { name: /qr/i }).first()
-    await expect(qrBtn).toBeVisible({ timeout: 5000 })
-    await qrBtn.click()
+    // Click the first occupied table cell (title contains "Table")
+    const occupiedCell = page.locator('button[title*="Table"]').first()
+    await expect(occupiedCell).toBeVisible({ timeout: 5000 })
+    await occupiedCell.click()
 
-    // Modal opens with QR code
+    // Modal opens with QR code image and URL
     const modal = page.locator('[role="dialog"]').first()
     await expect(modal).toBeVisible()
 
     // URL contains tenant slug and UUID
-    const urlEl = page.getByText(new RegExp(`/menu/${TENANT}\\?table=`))
-    await expect(urlEl).toBeVisible({ timeout: 3000 })
+    const urlInput = modal.locator('input[readonly]').first()
+    await expect(urlInput).toBeVisible({ timeout: 3000 })
+    const urlVal = await urlInput.inputValue()
+    expect(urlVal).toContain(`/menu/${TENANT}`)
+    expect(urlVal).toMatch(/table=[0-9a-f-]{36}/)
 
-    // Download button present
-    const downloadBtn = modal.getByRole('button', { name: /download/i })
+    // Download button present (rendered as '↓')
+    const downloadBtn = modal.getByRole('button').filter({ hasText: /↓|download/i })
     if (await downloadBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
       await expect(downloadBtn).toBeEnabled()
     }

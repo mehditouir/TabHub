@@ -15,29 +15,29 @@ test.describe.serial('Module 2 — Restaurant Configuration', () => {
     await page.goto(`/manager/${TENANT}/config`)
     await page.waitForLoadState('networkidle')
 
-    const nameInput = page.getByLabel(/restaurant name/i)
+    const nameInput = page.getByTestId('input-restaurant-name')
     await nameInput.fill('Café Tunisie Test')
-    await page.getByRole('button', { name: /save/i }).first().click()
+    await page.getByTestId('btn-save').click()
 
-    await expect(page.getByText(/saved|success/i).first()).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(/saved|success|enregistr/i).first()).toBeVisible({ timeout: 5000 })
 
     // Reload and verify persistence
     await page.reload()
     await page.waitForLoadState('networkidle')
-    await expect(nameInput).toHaveValue('Café Tunisie Test')
+    await expect(page.getByTestId('input-restaurant-name')).toHaveValue('Café Tunisie Test')
   })
 
   test('T-08 — Update TVA rate', async ({ page }) => {
     await page.goto(`/manager/${TENANT}/config`)
     await page.waitForLoadState('networkidle')
 
-    const tvaInput = page.getByLabel(/tva|tax/i)
+    const tvaInput = page.getByTestId('input-tva-rate')
     await tvaInput.fill('19')
-    await page.getByRole('button', { name: /save/i }).first().click()
+    await page.getByTestId('btn-save').click()
 
     await page.reload()
     await page.waitForLoadState('networkidle')
-    await expect(tvaInput).toHaveValue('19')
+    await expect(page.getByTestId('input-tva-rate')).toHaveValue('19')
   })
 
   test('T-09 — Update opening hours', async ({ page }) => {
@@ -49,10 +49,9 @@ test.describe.serial('Module 2 — Restaurant Configuration', () => {
     if (await timeInputs.count() > 0) {
       await timeInputs.first().fill('08:00')
       await timeInputs.nth(1).fill('22:00')
-      await page.getByRole('button', { name: /save/i }).last().click()
-      await expect(page.getByText(/saved|success/i).first()).toBeVisible({ timeout: 5000 })
+      await page.getByTestId('btn-save').click()
+      await expect(page.getByText(/saved|success|enregistr/i).first()).toBeVisible({ timeout: 5000 })
     } else {
-      // Config page may use text inputs for times
       const textInputs = page.locator('input[placeholder*="08:00"], input[placeholder*="HH:mm"]')
       if (await textInputs.count() > 0) {
         await textInputs.first().fill('08:00')
