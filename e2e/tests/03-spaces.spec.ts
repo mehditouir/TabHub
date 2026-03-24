@@ -21,21 +21,17 @@ test.describe.serial('Module 3 — Spaces & Tables', () => {
     await page.goto(`/manager/${TENANT}/spaces`)
     await page.waitForLoadState('networkidle')
 
-    // Navigate to Editor tab
-    await page.getByTestId('tab-editor').click()
-
-    // Check if E2E Terrasse already exists
+    // Check if E2E Terrasse already exists in the space sidebar list
     const existingSpace = page.getByText(SPACE_NAME, { exact: true })
     if (await existingSpace.isVisible({ timeout: 2000 }).catch(() => false)) {
       await expect(existingSpace).toBeVisible()
       return
     }
 
-    // Create new space
+    // Create new space — btn-new-space is always visible in the header
     await page.getByTestId('btn-new-space').click()
-    const dialog = page.locator('[role="dialog"], .modal, form').filter({ hasText: /nom|name|space/i }).first()
+    const dialog = page.locator('[role="dialog"]').first()
     await dialog.locator('input').first().fill(SPACE_NAME)
-    // Columns input (second input)
     const numInputs = dialog.locator('input[type="number"]')
     if (await numInputs.count() >= 2) {
       await numInputs.first().fill('4')

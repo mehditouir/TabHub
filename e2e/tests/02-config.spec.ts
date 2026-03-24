@@ -21,9 +21,10 @@ test.describe.serial('Module 2 — Restaurant Configuration', () => {
 
     await expect(page.getByText(/saved|success|enregistr/i).first()).toBeVisible({ timeout: 5000 })
 
-    // Reload and verify persistence
+    // Reload and verify persistence — wait for the API to populate the input
     await page.reload()
     await page.waitForLoadState('networkidle')
+    await expect(page.getByTestId('input-restaurant-name')).not.toHaveValue('', { timeout: 8000 })
     await expect(page.getByTestId('input-restaurant-name')).toHaveValue('Café Tunisie Test')
   })
 
@@ -37,6 +38,7 @@ test.describe.serial('Module 2 — Restaurant Configuration', () => {
 
     await page.reload()
     await page.waitForLoadState('networkidle')
+    await expect(page.getByTestId('input-tva-rate')).not.toHaveValue('', { timeout: 8000 })
     await expect(page.getByTestId('input-tva-rate')).toHaveValue('19')
   })
 

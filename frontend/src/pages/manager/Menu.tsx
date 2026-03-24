@@ -16,7 +16,7 @@ function Overlay({ children, onClose }: { children: React.ReactNode; onClose: ()
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
       onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+      <div role="dialog" className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
         {children}
       </div>
     </div>
