@@ -48,7 +48,7 @@ test.describe.serial('Module 3 — Spaces & Tables', () => {
     await page.getByTestId('tab-editor').click()
 
     // Select E2E Terrasse space
-    await page.getByText(SPACE_NAME, { exact: true }).click()
+    await page.getByText(SPACE_NAME, { exact: true }).first().click()
     await page.waitForLoadState('networkidle')
 
     // Click empty cells (+ buttons) to add tables
@@ -85,7 +85,7 @@ test.describe.serial('Module 3 — Spaces & Tables', () => {
     await page.goto(`/manager/${TENANT}/spaces`)
     await page.waitForLoadState('networkidle')
     await page.getByTestId('tab-editor').click()
-    await page.getByText(SPACE_NAME, { exact: true }).click()
+    await page.getByText(SPACE_NAME, { exact: true }).first().click()
 
     // Click the first occupied table cell (not a '+' button)
     const occupiedCell = page.getByRole('button').filter({ hasNotText: '+' })
@@ -125,7 +125,7 @@ test.describe.serial('Module 3 — Spaces & Tables', () => {
     await page.goto(`/manager/${TENANT}/spaces`)
     await page.waitForLoadState('networkidle')
     await page.getByTestId('tab-editor').click()
-    await page.getByText(SPACE_NAME, { exact: true }).click()
+    await page.getByText(SPACE_NAME, { exact: true }).first().click()
 
     // Click an occupied table cell to open modal, then delete
     const occupiedCell = page.locator('button[title*="Table"]').last()
@@ -144,7 +144,7 @@ test.describe.serial('Module 3 — Spaces & Tables', () => {
     await page.reload()
     await page.waitForLoadState('networkidle')
     await page.getByTestId('tab-editor').click()
-    await expect(page.getByText(SPACE_NAME, { exact: true })).toBeVisible()
+    await expect(page.getByText(SPACE_NAME, { exact: true }).first()).toBeVisible()
   })
 
 })

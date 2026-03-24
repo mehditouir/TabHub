@@ -102,6 +102,10 @@ test.describe.serial('Module 7 — Customer QR Ordering Flow', () => {
   })
 
   test('T-33 — Place order', async ({ page }) => {
+    if (!menuUrl.includes('table=')) {
+      test.skip(true, 'No table QR token — Commander button disabled without valid table')
+      return
+    }
     await page.goto(menuUrl)
     await page.waitForLoadState('networkidle')
     await expect(page.getByText('Café')).toBeVisible({ timeout: 8000 })

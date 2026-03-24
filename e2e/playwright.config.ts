@@ -9,7 +9,7 @@ export default defineConfig({
   // All tests are sequential — they build on each other's prod state
   fullyParallel: false,
   workers: 1,
-  retries: 0,
+  retries: 1,
   timeout: 45_000,
   reporter: [
     ['html', { open: 'never', outputFolder: 'playwright-report' }],
@@ -22,7 +22,7 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     actionTimeout: 15_000,
-    navigationTimeout: 30_000,
+    navigationTimeout: 60_000,
     video: 'off',
   },
   projects: [

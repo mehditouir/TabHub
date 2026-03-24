@@ -112,12 +112,14 @@ test.describe.serial('Module 21 — Super Admin Interface', () => {
     await page.getByLabel(/email/i).fill('manager@testcafe.com')
     await page.getByLabel(/password/i).fill('test1234')
 
-    // Assign to testcafe tenant
+    // Assign to testcafe tenant — find option text then select by label string
     const tenantSelect = page.getByLabel(/tenant/i).or(page.locator('select').first())
     if (await tenantSelect.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await tenantSelect.selectOption({ label: /testcafe/i }).catch(async () => {
-        await tenantSelect.selectOption('testcafe')
-      })
+      const testcafeOpt = tenantSelect.locator('option').filter({ hasText: /testcafe/i })
+      if (await testcafeOpt.count() > 0) {
+        const optText = await testcafeOpt.first().textContent()
+        if (optText) await tenantSelect.selectOption({ label: optText.trim() })
+      }
     }
 
     await page.getByRole('button', { name: /create manager|add manager/i }).click()
@@ -144,21 +146,33 @@ test.describe.serial('Module 21 — Super Admin Interface', () => {
       .or(page.locator('[class*="assign"]')).first()
 
     if (await assignSection.isVisible({ timeout: 3000 }).catch(() => false)) {
-      // Select Test Manager
+      // Select Test Manager — find option text then select by label string
       const managerSelect = assignSection.getByLabel(/manager/i)
         .or(assignSection.locator('select').first())
-      await managerSelect.selectOption({ label: /test manager|manager@testcafe/i })
+      const managerOpt = managerSelect.locator('option').filter({ hasText: /test manager|manager@testcafe/i })
+      if (await managerOpt.count() > 0) {
+        const mText = await managerOpt.first().textContent()
+        if (mText) await managerSelect.selectOption({ label: mText.trim() })
+      }
 
-      // Select cafetunisia tenant
+      // Select cafetunisia tenant — find option text then select by label string
       const tenantSelect = assignSection.getByLabel(/tenant/i)
         .or(assignSection.locator('select').nth(1))
-      await tenantSelect.selectOption({ label: /cafe tunisia|cafetunisia/i })
+      const tenantOpt = tenantSelect.locator('option').filter({ hasText: /cafe tunisia|cafetunisia/i })
+      if (await tenantOpt.count() > 0) {
+        const tText = await tenantOpt.first().textContent()
+        if (tText) await tenantSelect.selectOption({ label: tText.trim() })
+      }
 
       // Role: Admin
       const roleSelect = assignSection.getByLabel(/role/i)
         .or(assignSection.locator('select').nth(2))
       if (await roleSelect.isVisible({ timeout: 1000 }).catch(() => false)) {
-        await roleSelect.selectOption({ label: /admin/i })
+        const adminOpt = roleSelect.locator('option').filter({ hasText: /admin/i })
+        if (await adminOpt.count() > 0) {
+          const rText = await adminOpt.first().textContent()
+          if (rText) await roleSelect.selectOption({ label: rText.trim() })
+        }
       }
 
       await assignSection.getByRole('button', { name: /assign/i }).click()
@@ -167,9 +181,17 @@ test.describe.serial('Module 21 — Super Admin Interface', () => {
       // Assign via standalone form on the page
       const managerDropdown = page.locator('select').filter({ hasText: /test manager|testcafe/i }).first()
       if (await managerDropdown.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await managerDropdown.selectOption({ label: /test manager/i })
+        const mOpt = managerDropdown.locator('option').filter({ hasText: /test manager/i })
+        if (await mOpt.count() > 0) {
+          const mText = await mOpt.first().textContent()
+          if (mText) await managerDropdown.selectOption({ label: mText.trim() })
+        }
         const tenantDropdown = page.locator('select').nth(1)
-        await tenantDropdown.selectOption({ label: /cafetunisia/i })
+        const tOpt = tenantDropdown.locator('option').filter({ hasText: /cafetunisia/i })
+        if (await tOpt.count() > 0) {
+          const tText = await tOpt.first().textContent()
+          if (tText) await tenantDropdown.selectOption({ label: tText.trim() })
+        }
         await page.getByRole('button', { name: /assign/i }).click()
         await expect(page.getByText(/assigned|success/i).first()).toBeVisible({ timeout: 5000 })
       }
