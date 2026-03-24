@@ -136,10 +136,13 @@ test.describe.serial('Module 12 — Full End-to-End Simulation', () => {
     const cashierPage = await cashierCtx.newPage()
     const kitchenPage = await kitchenCtx.newPage()
 
-    await displayPage.goto(`/takeaway/${TENANT}`)
-    await cashierPage.goto(`/cashier/${TENANT}`)
+    // Load all three surfaces in parallel — reduces Azure cold-start impact
+    await Promise.all([
+      displayPage.goto(`/takeaway/${TENANT}`),
+      cashierPage.goto(`/cashier/${TENANT}`),
+      kitchenPage.goto(`/kitchen/${TENANT}`),
+    ])
     await loginWithPin(cashierPage, TENANT, CASHIER_PIN)
-    await kitchenPage.goto(`/kitchen/${TENANT}`)
     await loginWithPin(kitchenPage, TENANT, KITCHEN_PIN)
 
     // Place takeaway order

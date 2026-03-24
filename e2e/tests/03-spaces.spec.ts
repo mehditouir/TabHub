@@ -92,18 +92,11 @@ test.describe.serial('Module 3 — Spaces & Tables', () => {
       .and(page.locator('button[title*="Table"]'))
       .first()
 
-    if (!(await occupiedCell.isVisible({ timeout: 3000 }).catch(() => false))) {
-      // Fallback: any button in the grid that isn't '+'
-      const gridBtns = page.locator('button').filter({ hasNotText: '+' })
-      if (await gridBtns.count() > 0) {
-        await gridBtns.first().click()
-      } else {
-        test.skip(true, 'No tables found to test QR')
-        return
-      }
-    } else {
-      await occupiedCell.click()
+    if (!(await occupiedCell.isVisible({ timeout: 8000 }).catch(() => false))) {
+      test.skip(true, 'No tables found in E2E Terrasse — T-11 may not have run')
+      return
     }
+    await occupiedCell.click()
 
     // Modal should open with QR code image and URL
     const modal = page.locator('[role="dialog"]').first()

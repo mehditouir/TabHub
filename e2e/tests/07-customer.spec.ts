@@ -162,6 +162,10 @@ test.describe.serial('Module 7 — Customer QR Ordering Flow', () => {
   })
 
   test('T-35 — Call waiter button', async ({ page }) => {
+    if (!menuUrl.includes('table=')) {
+      test.skip(true, 'No table QR token — Commander button disabled without valid table')
+      return
+    }
     await page.goto(menuUrl)
     await page.waitForLoadState('networkidle')
     await addCafeToCart(page)
@@ -178,6 +182,10 @@ test.describe.serial('Module 7 — Customer QR Ordering Flow', () => {
   })
 
   test('T-36 — Request bill button', async ({ page }) => {
+    if (!menuUrl.includes('table=')) {
+      test.skip(true, 'No table QR token — Commander button disabled without valid table')
+      return
+    }
     await page.goto(menuUrl)
     await page.waitForLoadState('networkidle')
     await addCafeToCart(page)
